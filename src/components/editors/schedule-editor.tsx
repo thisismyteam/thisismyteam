@@ -58,7 +58,7 @@ export function ScheduleEditor({ teamId, seasonId }: { teamId: string; seasonId:
   });
 
   const updateGame = useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: Record<string, unknown> }) => {
+    mutationFn: async ({ id, patch }: { id: string; patch: GamePatch }) => {
       const { error } = await supabase.from("games").update(patch).eq("id", id);
       if (error) throw error;
     },
