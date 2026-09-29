@@ -39,7 +39,7 @@ function CheckoutResult() {
     refetchInterval: (query) => result === 'success' && !query.state.data?.season?.paid_at ? 3000 : false,
   })
   const live = !!billing.data?.season?.paid_at && !!billing.data?.team.published
-  const url = `${origin}/${billing.data?.team.slug ?? ''}`
+  const url = `https://thisismyteam.app/${billing.data?.team.slug ?? ''}`
   return <div className="min-h-screen bg-background"><SiteHeader /><main className="mx-auto max-w-2xl px-4 py-14 sm:px-6">
     {billing.isError ? <p className="text-destructive">Could not verify your team. Please sign in as its Owner.</p> : !billing.data ? <p className="text-muted-foreground">Checking your team…</p> : live ? <>
       <p className="eyebrow text-primary">Game on</p><h1 className="display-xl mt-3 text-5xl">You're live!</h1>
