@@ -5,7 +5,9 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Btn, Field, SelectInput, TextInput } from "@/components/ui-kit";
 import { uploadMedia } from "@/lib/storage";
-import { emptyRosterRow, parseRosterPaste, type Player, type RosterDraftRow } from "@/lib/team";
+import { emptyRosterRow, type Player, type RosterDraftRow } from "@/lib/team";
+import { tableToRoster, type RosterImportRow } from "@/lib/import/columns";
+import { ImportPanel } from "@/components/editors/import-panel";
 import { SaveStatus, useRowSaveStatus, useSaveStatus } from "@/components/save-status";
 
 export function RosterEditor({
@@ -21,7 +23,6 @@ export function RosterEditor({
 }) {
   const qc = useQueryClient();
   const [tab, setTab] = useState<"paste" | "one">("paste");
-  const [pasteText, setPasteText] = useState("");
   const [draft, setDraft] = useState<RosterDraftRow>(() => emptyRosterRow(defaultLevel));
   const rowSave = useRowSaveStatus();
   const [addState, setAddState] = useSaveStatus();
@@ -61,7 +62,6 @@ export function RosterEditor({
      onSuccess: () => {
        setAddState("saved");
       qc.invalidateQueries({ queryKey: ["players", seasonId] });
-      setPasteText("");
       setDraft(emptyRosterRow(defaultLevel));
       toast.success("Roster updated");
     },
@@ -96,8 +96,6 @@ export function RosterEditor({
     }
   }
 
-  const parsedPreview = pasteText ? parseRosterPaste(pasteText, defaultLevel) : [];
-
   return (
     <div className="flex flex-col gap-6">
       <div className="flex gap-2">
@@ -106,7 +104,7 @@ export function RosterEditor({
           onClick={() => setTab("paste")}
           className={`h-10 rounded-md px-4 text-sm font-semibold ${tab === "paste" ? "bg-primary text-primary-foreground" : "border border-input"}`}
         >
-          Paste a list
+          Paste or upload
         </button>
         <button
           type="button"
