@@ -72,7 +72,7 @@ function Landing() {
       <section className="relative overflow-hidden border-b border-border">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
           <p className="eyebrow text-primary">thisismyteam.app</p>
-          <h1 className="display-xl mt-4 max-w-4xl text-[clamp(2.75rem,10vw,7rem)]">
+          <h1 className="display-xl mt-4 max-w-4xl text-[clamp(2.75rem,10vw,7rem)] leading-[1.05]">
             Every team
             <br />
             deserves to
