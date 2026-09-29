@@ -62,10 +62,11 @@ export function TeamPageView({ data, bottomBar }: { data: TeamPageData; bottomBa
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const [muted, setMuted] = useState(true);
+  const [soundHint, setSoundHint] = useState(true);
 
   return (
     <div
-      className="min-h-screen bg-background"
+      className={bottomBar ? "min-h-screen bg-background pb-36 sm:pb-24" : "min-h-screen bg-background"}
       style={
         {
           "--team-primary": primary,
@@ -74,7 +75,7 @@ export function TeamPageView({ data, bottomBar }: { data: TeamPageData; bottomBa
         } as React.CSSProperties
       }
     >
-      <SiteHeader />
+      <SiteHeader slim extra={membership.data?.role === "owner" || membership.data?.role === "contributor" ? <Link to="/admin/$teamId" params={{ teamId: team.id }} className="inline-flex h-9 items-center rounded-md border border-border px-3 text-xs font-bold uppercase hover:bg-surface-2">Manage team</Link> : null} />
       {/* Hero */}
       <header className="relative overflow-hidden">
         <div className="relative h-[62vh] min-h-[420px] w-full sm:h-[70vh]">
@@ -89,19 +90,23 @@ export function TeamPageView({ data, bottomBar }: { data: TeamPageData; bottomBa
                 playsInline
                 className="absolute inset-0 h-full w-full object-cover"
               />
-              <Btn variant="ghost" type="button"
+              <button type="button"
                 onClick={() => {
                   const v = videoRef.current;
                   if (!v) return;
                   v.muted = !v.muted;
                   setMuted(v.muted);
+                  setSoundHint(false);
                   void v.play();
                 }}
-                className="absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-background/70 text-foreground backdrop-blur"
+                className="absolute right-4 top-4 z-20 flex items-center gap-2"
                 aria-label={muted ? "Turn sound on" : "Turn sound off"}
               >
-                {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-              </Btn>
+                {muted && soundHint ? <span className="rounded-full bg-hero-scrim px-3 py-1.5 font-condensed text-sm font-bold uppercase tracking-wider text-hero-light backdrop-blur">Tap for sound</span> : null}
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-hero-scrim text-hero-light ring-1 ring-hero-light/30 backdrop-blur">
+                  {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                </span>
+              </button>
             </>
           ) : (
             <div
@@ -129,8 +134,7 @@ export function TeamPageView({ data, bottomBar }: { data: TeamPageData; bottomBa
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
 
           <div className="absolute inset-x-0 bottom-0 mx-auto max-w-6xl px-4 pb-8 sm:px-6 sm:pb-12">
-             {membership.data?.role === "owner" || membership.data?.role === "contributor" ? <Link to="/admin/$teamId" params={{ teamId: team.id }} className="mb-4 inline-flex h-11 items-center bg-primary px-5 text-sm font-bold uppercase text-primary-foreground hover:bg-primary/90">Manage team</Link> : null}
-             <p className="eyebrow text-foreground">
+             <p className="font-condensed text-sm font-bold uppercase tracking-[0.2em] text-hero-light drop-shadow sm:text-base">
                {team.organizations?.name}
             </p>
             <h1 className="display-xl mt-2 text-5xl leading-[0.9] sm:text-7xl lg:text-8xl">
@@ -291,6 +295,7 @@ export function TeamPageView({ data, bottomBar }: { data: TeamPageData; bottomBa
         </div>
       ) : null}
       {coach ? <div role="presentation" className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 sm:items-center sm:p-6" onClick={() => setCoach(null)}><div role="dialog" aria-modal="true" aria-label={coach.name} className="max-h-[90vh] w-full max-w-md overflow-y-auto border border-border bg-surface" onClick={(e) => e.stopPropagation()}>{coach.photo_url ? <img src={coach.photo_url} alt={coach.name} className="aspect-[4/3] w-full object-cover" /> : <div className="flex aspect-[4/3] items-center justify-center bg-team font-condensed text-7xl text-team-foreground">{coach.name.split(/\s+/).map((part) => part[0]).slice(0, 2).join("")}</div>}<div className="p-6"><p className="eyebrow text-team-secondary">{coach.title ?? "Coach"}</p><h3 className="display-xl mt-1 text-3xl">{coach.name}</h3>{coach.bio ? <p className="mt-4 text-sm">{coach.bio}</p> : null}<Btn type="button" variant="outline" className="mt-6 w-full" onClick={() => setCoach(null)}>Close</Btn></div></div></div> : null}
+      {bottomBar}
       {clip?.video_url ? <div role="presentation" className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 p-3 sm:p-8" onClick={() => setClip(null)}><div role="dialog" aria-modal="true" aria-label={clip.title} className="w-full max-w-5xl bg-surface" onClick={(e) => e.stopPropagation()}><div className="flex items-center justify-between gap-4 p-4"><h3 className="font-condensed text-2xl font-bold uppercase">{clip.title}</h3><Btn variant="ghost" type="button" aria-label="Close clip" onClick={() => setClip(null)}><X className="h-5 w-5" /></Btn></div><HighlightPlayer url={clip.video_url} title={clip.title} /></div></div> : null}
     </div>
   );
