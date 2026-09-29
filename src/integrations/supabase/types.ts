@@ -737,11 +737,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      is_org_manager: { Args: { _org_id: string }; Returns: boolean }
-      is_team_manager: { Args: { _team_id: string }; Returns: boolean }
-      is_team_owner: { Args: { _team_id: string }; Returns: boolean }
-      is_team_published: { Args: { _team_id: string }; Returns: boolean }
-      team_has_members: { Args: { _team_id: string }; Returns: boolean }
+      [_ in never]: never
     }
     Enums: {
       team_role: "owner" | "contributor"
