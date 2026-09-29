@@ -1,10 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { PlayCircle } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/site-header";
 import { LandingVideoHero } from "@/components/landing-video-hero";
+import { getShowcaseTeam } from "@/lib/public-team.functions";
 import type { Sport } from "@/lib/team";
+
+/** The published team shown in the homepage "See it live" showcase. */
+const SHOWCASE_SLUG = "beverly-hills-normans";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -213,13 +218,9 @@ function Landing() {
         )}
       </section>
 
-      {/* ---------- Promo video placeholder ---------- */}
-      <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
-        <div className="panel flex aspect-video w-full flex-col items-center justify-center gap-3 bg-surface-2 text-center">
-          <PlayCircle className="h-12 w-12 text-muted-foreground" aria-hidden="true" />
-          <p className="eyebrow text-muted-foreground">Promo video coming soon</p>
-        </div>
-      </section>
+      {/* ---------- See it live ---------- */}
+      <Showcase />
+
 
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-10 sm:px-6 lg:px-8">
