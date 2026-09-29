@@ -1,3 +1,4 @@
+import { DropZone } from "@/components/drop-zone";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { Btn, Field, SelectInput, TextInput } from "@/components/ui-kit";
@@ -160,29 +161,15 @@ export function TeamBasicsForm({
               </span>
             )}
           </span>
-          <div className="flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
+          <div className="min-w-0 flex-1">
+            <DropZone
+              label={uploading ? "Uploading…" : value.logo_url ? "Replace logo" : "Upload logo"}
+              hint="PNG or JPG · we pull your two main colors from it"
+              accept="image/*"
               disabled={uploading}
-              className="h-10 rounded-md border border-input px-4 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
-            >
-              {uploading ? "Uploading…" : value.logo_url ? "Replace logo" : "Upload logo"}
-            </button>
-            <span className="text-xs text-muted-foreground">
-              We pull your two main colors from it.
-            </span>
+              onFiles={(files) => { const f = files[0]; if (f) handleLogo(f); }}
+            />
           </div>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handleLogo(f);
-            }}
-          />
         </div>
       </div>
 
