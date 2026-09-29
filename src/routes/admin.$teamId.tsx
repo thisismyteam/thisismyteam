@@ -297,7 +297,7 @@ function AdminPage() {
         {tab === "Schedule" && season ? (
           <div className="flex flex-col gap-6">
             <SectionTitle title="Schedule and scores" />
-            <ScheduleEditor teamId={team.id} seasonId={season.id} statColumns={sport.player_stats ?? []} />
+            <ScheduleEditor teamId={team.id} seasonId={season.id} statColumns={sport.player_stats ?? []} year={Number(season.label) || 2026} />
           </div>
         ) : null}
         {tab === "Highlights" && season ? <div className="space-y-6"><SectionTitle title="Highlights" /><HighlightsEditor teamId={team.id} seasonId={season.id} /></div> : null}

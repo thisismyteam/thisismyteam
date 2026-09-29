@@ -93,7 +93,7 @@ function Dashboard() {
                   )}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <h2 className="truncate text-xl">{team.name}</h2>
+                  <h2 className="flex items-center gap-2 truncate text-xl">{team.name}{!team.published ? <span className="rounded-sm bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary-foreground">Draft</span> : null}</h2>
                   <p className="text-xs text-muted-foreground">
                     {team.sports?.name} · {team.level} · {row.role} ·{" "}
                     {team.published ? "Live" : "Draft"}
@@ -101,12 +101,25 @@ function Dashboard() {
                   {row.role === "owner" && row.billing?.paid_at ? <p className="mt-1 text-sm font-semibold text-primary">Paid for {row.billing.label} season</p> : null}
                 </div>
                 <div className="flex gap-2">
-                  <Link to="/$slug" params={{ slug: team.slug }}>
-                    <Btn variant="outline">View</Btn>
-                  </Link>
-                  <Link to="/admin/$teamId" params={{ teamId: team.id }}>
-                    <Btn>Manage</Btn>
-                  </Link>
+                  {team.published ? (
+                    <>
+                      <Link to="/$slug" params={{ slug: team.slug }}>
+                        <Btn variant="outline">View</Btn>
+                      </Link>
+                      <Link to="/admin/$teamId" params={{ teamId: team.id }}>
+                        <Btn>Manage</Btn>
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link to="/admin/$teamId" params={{ teamId: team.id }}>
+                        <Btn variant="outline">Manage</Btn>
+                      </Link>
+                      <Link to="/start" search={{ teamId: team.id }}>
+                        <Btn>Continue setup</Btn>
+                      </Link>
+                    </>
+                  )}
                 </div>
               </div>
             );
