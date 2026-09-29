@@ -1,0 +1,1 @@
+CREATE POLICY profiles_owner_members_read ON public.profiles FOR SELECT TO authenticated USING (EXISTS (SELECT 1 FROM public.team_members m WHERE m.user_id = profiles.id AND private.is_team_owner(m.team_id)));

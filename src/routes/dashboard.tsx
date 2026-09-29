@@ -14,6 +14,8 @@ export const Route = createFileRoute("/dashboard")({
       { name: "description", content: "Manage the teams you run on This Is My Team." },
       { property: "og:title", content: "My teams — This Is My Team" },
       { property: "og:description", content: "Manage the teams you run on This Is My Team." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Dashboard,
@@ -31,6 +33,8 @@ function Dashboard() {
     enabled: !!user,
     queryKey: ["my-teams", user?.id],
     queryFn: async () => {
+      const { error: claimError } = await supabase.rpc("claim_team_invites");
+      if (claimError) throw claimError;
       const { data, error } = await supabase
         .from("team_members")
         .select(

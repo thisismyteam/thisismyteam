@@ -32,9 +32,9 @@ export const getPublicTeam = createServerFn({ method: "GET" })
       .limit(1)
       .maybeSingle();
 
-    if (!season) return { team, season: null, players: [], coaches: [], games: [] };
+    if (!season) return { team, season: null, players: [], coaches: [], games: [], highlights: [], highlightPlayers: [], leaders: [], involved: [], followerCount: 0 };
 
-    const [players, coaches, games] = await Promise.all([
+    const [players, coaches, games, highlights, highlightPlayers, leaders, involved, count] = await Promise.all([
       supabase
         .from("players")
         .select("*")
@@ -42,6 +42,11 @@ export const getPublicTeam = createServerFn({ method: "GET" })
         .order("jersey_number", { nullsFirst: false }),
       supabase.from("coaches").select("*").eq("season_id", season.id).order("sort_order"),
       supabase.from("games").select("*").eq("season_id", season.id).order("game_date"),
+      supabase.from("highlights").select("id,title,video_url,featured,game_id,created_at").eq("season_id", season.id).order("featured", { ascending: false }).order("created_at", { ascending: false }),
+      supabase.from("highlight_players").select("highlight_id,player_id").eq("season_id", season.id),
+      supabase.from("player_game_stats").select("id,game_id,player_id,leader_rank,stats").eq("season_id", season.id).not("leader_rank", "is", null),
+      supabase.from("get_involved_links").select("id,label,url,description,sort_order").eq("season_id", season.id).order("sort_order"),
+      supabase.rpc("team_follower_count", { _team_id: team.id }),
     ]);
 
     return {
@@ -50,5 +55,10 @@ export const getPublicTeam = createServerFn({ method: "GET" })
       players: players.data ?? [],
       coaches: coaches.data ?? [],
       games: games.data ?? [],
+      highlights: highlights.data ?? [],
+      highlightPlayers: highlightPlayers.data ?? [],
+      leaders: leaders.data ?? [],
+      involved: involved.data ?? [],
+      followerCount: count.data ?? 0,
     };
   });

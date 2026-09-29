@@ -11,6 +11,11 @@ import { TeamBasicsForm, type TeamBasics } from "@/components/editors/team-basic
 import { RosterEditor } from "@/components/editors/roster-editor";
 import { CoachEditor } from "@/components/editors/coach-editor";
 import { ScheduleEditor } from "@/components/editors/schedule-editor";
+import { HeroVideoEditor } from "@/components/editors/hero-video-editor";
+import { HighlightsEditor } from "@/components/editors/highlights-editor";
+import { InvolvedEditor } from "@/components/editors/involved-editor";
+import { FollowersEditor } from "@/components/editors/followers-editor";
+import { MembersEditor } from "@/components/editors/members-editor";
 import { isReservedSlug, slugify } from "@/lib/slug";
 import type { Season, Sport, Team } from "@/lib/team";
 
@@ -28,12 +33,14 @@ export const Route = createFileRoute("/admin/$teamId")({
         property: "og:description",
         content: "Edit your team info, roster, coaches, schedule and scores any time.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AdminPage,
 });
 
-const TABS = ["Team info", "Roster", "Coaches", "Schedule"] as const;
+const TABS = ["Team info", "Roster", "Coaches", "Schedule", "Highlights", "Get involved", "Followers", "Team members"] as const;
 
 function AdminPage() {
   const { teamId } = Route.useParams();
@@ -43,6 +50,7 @@ function AdminPage() {
   const [tab, setTab] = useState<(typeof TABS)[number]>("Team info");
   const [basics, setBasics] = useState<TeamBasics | null>(null);
   const [saving, setSaving] = useState(false);
+  const [heroVideo, setHeroVideo] = useState<string | null | undefined>();
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth", replace: true });
@@ -73,10 +81,15 @@ function AdminPage() {
         .eq("id", team.sport_id)
         .single();
 
+      const { data: membership } = await supabase
+        .from("team_members").select("role").eq("team_id", teamId).eq("user_id", user?.id ?? "").maybeSingle();
+      if (!membership) throw new Error("You do not have access to manage this team.");
+
       return {
         team: team as unknown as Team,
         season: (season ?? null) as unknown as Season | null,
         sport: sport as unknown as Sport,
+        isOwner: membership.role === "owner",
       };
     },
   });
@@ -168,6 +181,7 @@ function AdminPage() {
     toast.success(next ? "Your team is live" : "Your team is now a draft");
   }
 
+  if (teamQuery.isError) return <div className="min-h-screen bg-background"><SiteHeader /><main className="mx-auto max-w-5xl px-4 py-16"><h1 className="text-3xl">Team unavailable</h1><p className="mt-3 text-muted-foreground">You don't have access to manage this team.</p><Link to="/dashboard" className="mt-4 inline-block text-primary">Back to my teams</Link></main></div>;
   if (teamQuery.isLoading || !basics || !teamQuery.data) {
     return (
       <div className="min-h-screen bg-background">
@@ -179,7 +193,7 @@ function AdminPage() {
     );
   }
 
-  const { team, season, sport } = teamQuery.data;
+  const { team, season, sport, isOwner } = teamQuery.data;
 
   return (
     <div className="min-h-screen bg-background">
@@ -250,6 +264,7 @@ function AdminPage() {
             </div>
           </form>
         ) : null}
+        {tab === "Team info" ? <div className="mt-8"><HeroVideoEditor teamId={team.id} value={heroVideo === undefined ? team.hero_video_url : heroVideo} onChange={setHeroVideo} /></div> : null}
 
         {tab === "Roster" && season ? (
           <div className="flex flex-col gap-6">
@@ -273,9 +288,13 @@ function AdminPage() {
         {tab === "Schedule" && season ? (
           <div className="flex flex-col gap-6">
             <SectionTitle title="Schedule and scores" />
-            <ScheduleEditor teamId={team.id} seasonId={season.id} />
+            <ScheduleEditor teamId={team.id} seasonId={season.id} statColumns={sport.player_stats ?? []} />
           </div>
         ) : null}
+        {tab === "Highlights" && season ? <div className="space-y-6"><SectionTitle title="Highlights" /><HighlightsEditor teamId={team.id} seasonId={season.id} /></div> : null}
+        {tab === "Get involved" && season ? <div className="space-y-6"><SectionTitle title="Get involved" /><InvolvedEditor teamId={team.id} seasonId={season.id} /></div> : null}
+        {tab === "Followers" ? <div className="space-y-6"><SectionTitle title="Followers" /><FollowersEditor teamId={team.id} /></div> : null}
+        {tab === "Team members" ? <div className="space-y-6"><SectionTitle title="Team members" /><MembersEditor teamId={team.id} isOwner={isOwner} /></div> : null}
       </main>
     </div>
   );

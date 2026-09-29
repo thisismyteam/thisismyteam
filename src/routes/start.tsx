@@ -35,6 +35,8 @@ export const Route = createFileRoute("/start")({
         property: "og:description",
         content: "Add your organization, team, roster and schedule, then go live.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Wizard,
@@ -308,7 +310,7 @@ function Wizard() {
             }}
           >
             <SectionTitle eyebrow="Step 2" title="Team basics" />
-            <TeamBasicsForm value={basics} onChange={setBasics} uploadPrefix={orgId ?? "new"} />
+            <TeamBasicsForm value={basics} onChange={setBasics} uploadPrefix={teamId ?? user?.id ?? "new"} />
             <div className="flex gap-2">
               <Btn type="button" variant="outline" onClick={() => setStep(1)}>
                 Back
