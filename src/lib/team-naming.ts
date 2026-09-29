@@ -1,5 +1,5 @@
 export function organizationShortName(name: string) {
-  return name.trim().replace(/\s+(?:High School|Middle School|Elementary School|School|Academy|Athletics|Athletic Club|Sports Club|Club|League)$/i, "").trim() || name.trim();
+  return name.trim().replace(/\s+(?:High School|Middle School|Elementary School|HS|School|Academy|Athletics|Athletic Club|Sports Club|Club|League)$/i, "").trim() || name.trim();
 }
 
 export function suggestedTeamName(organization: string, mascot: string) {

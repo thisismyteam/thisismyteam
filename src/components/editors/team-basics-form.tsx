@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { Field, SelectInput, TextInput } from "@/components/ui-kit";
+import { Btn, Field, SelectInput, TextInput } from "@/components/ui-kit";
 import { uploadMedia } from "@/lib/storage";
 import { extractPalette, isValidHex, onColor } from "@/lib/colors";
 import { slugify } from "@/lib/slug";
@@ -49,6 +49,7 @@ export function TeamBasicsForm({
   organizationName?: string;
 }) {
   const [uploading, setUploading] = useState(false);
+  const [editingDisplayName, setEditingDisplayName] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   function set<K extends keyof TeamBasics>(key: K, v: TeamBasics[K]) {
@@ -80,11 +81,11 @@ export function TeamBasicsForm({
 
   return (
     <div className="grid gap-4 sm:grid-cols-12">
-      <Field label="Mascot / nickname" className="sm:col-span-6">
+       <Field label="What's your mascot or team nickname?" className="sm:col-span-12">
         <TextInput
           required
           value={value.mascot}
-          placeholder="Normans"
+           placeholder="e.g. Normans"
           onChange={(e) => {
             const next = e.target.value;
             const previousSuggestion = suggestedTeamName(organizationName, value.mascot);
@@ -93,14 +94,16 @@ export function TeamBasicsForm({
           }}
         />
       </Field>
-      <Field label="Display name" className="sm:col-span-6">
-        <TextInput
-          required
-          value={value.name}
-          placeholder={suggestedTeamName(organizationName, value.mascot) || "Beverly Hills Normans"}
-          onChange={(e) => setName(e.target.value)}
-        />
-      </Field>
+       <div className="border-l-4 border-primary bg-surface px-4 py-4 sm:col-span-12 sm:px-6" aria-live="polite">
+         <p className="font-condensed text-sm font-bold uppercase text-muted-foreground" style={{ letterSpacing: "0.2em" }}>{organizationName || "Your school, club or league"}</p>
+         <p className="display-xl mt-2 break-words text-3xl uppercase leading-none sm:text-5xl">{value.name || suggestedTeamName(organizationName, value.mascot) || "Your team name"}</p>
+         <Btn type="button" variant="ghost" className="mt-2 h-auto px-0 py-1 text-primary" onClick={() => setEditingDisplayName((open) => !open)} aria-expanded={editingDisplayName}>
+           {editingDisplayName ? "Done editing" : "Edit display name"}
+         </Btn>
+         {editingDisplayName ? <Field label="Display name" className="mt-2 max-w-lg">
+           <TextInput required value={value.name} placeholder={suggestedTeamName(organizationName, value.mascot) || "Beverly Hills Normans"} onChange={(e) => setName(e.target.value)} />
+         </Field> : null}
+       </div>
 
       <Field label="Level" className="sm:col-span-4">
         <SelectInput value={value.level} onChange={(e) => set("level", e.target.value)}>
