@@ -28,6 +28,7 @@ export const startTeamCheckout = createServerFn({ method: 'POST' })
     const origin = new URL(getRequest().url).origin
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
+      adaptive_pricing: { enabled: false },
       payment_method_types: ['card'],
       line_items: [{ price_data: { currency: 'usd', unit_amount: TEAM_SEASON_CENTS,
         product_data: { name: 'This Is My Team - Team Season' } }, quantity: 1 }],
