@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -421,6 +421,9 @@ function Wizard() {
               <Btn variant="outline" onClick={() => setStep(4)}>
                 Back
               </Btn>
+              <Link to="/preview/$teamId" params={{ teamId }} className="inline-flex h-11 items-center rounded-md border border-border px-5 text-sm font-bold uppercase hover:bg-surface-2">
+                Preview my page
+              </Link>
               <Btn onClick={publish} disabled={busy} className="px-8">
                 Pay and publish
               </Btn>
