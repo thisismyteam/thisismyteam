@@ -57,6 +57,17 @@ export function ScheduleEditor({ teamId, seasonId }: { teamId: string; seasonId:
     onError: (e: Error) => toast.error(e.message),
   });
 
+  type GamePatch = Partial<{
+    game_date: string | null;
+    game_time: string | null;
+    opponent: string;
+    home_away: string;
+    location: string | null;
+    team_score: number | null;
+    opponent_score: number | null;
+    status: string;
+  }>;
+
   const updateGame = useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: GamePatch }) => {
       const { error } = await supabase.from("games").update(patch).eq("id", id);
@@ -75,7 +86,11 @@ export function ScheduleEditor({ teamId, seasonId }: { teamId: string; seasonId:
     onError: (e: Error) => toast.error(e.message),
   });
 
-  function scorePatch(game: Game, field: "team_score" | "opponent_score", value: string) {
+  function scorePatch(
+    game: Game,
+    field: "team_score" | "opponent_score",
+    value: string,
+  ): GamePatch {
     const next = value === "" ? null : Number(value);
     const other = field === "team_score" ? game.opponent_score : game.team_score;
     return { [field]: next, status: next != null && other != null ? "final" : "scheduled" };
