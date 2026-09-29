@@ -213,10 +213,10 @@
 
 /* Landing film: scoped to avoid changing public team pages. */
 .promo-stage {
-  --night: oklch(0.145 0.012 265);
-  --chalk: oklch(0.985 0.002 250);
-  --flare: oklch(0.672 0.221 32);
-  --gold: oklch(0.86 0.17 95);
+  --night: #07080a;
+  --chalk: #f5f3ee;
+  --flare: #f06022;
+  --gold: #d9a441;
   --display: "Anton", "Impact", "Arial Narrow Bold", sans-serif;
   --label: "Barlow Condensed", "Arial Narrow", sans-serif;
   position: relative;
@@ -227,7 +227,7 @@
 }
 @media (max-width: 640px) { .promo-stage { aspect-ratio: 4/5; } }
 .promo-stage video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.promo-stage .grade { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 45%, color-mix(in oklab, var(--night) 65%, transparent) 100%), linear-gradient(180deg, color-mix(in oklab, var(--night) 25%, transparent), transparent 30%, transparent 70%, color-mix(in oklab, var(--night) 45%, transparent)); }
+.promo-stage .grade { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 45%, rgb(0 0 0 / 65%) 100%), linear-gradient(180deg, rgb(0 0 0 / 25%), transparent 30%, transparent 70%, rgb(0 0 0 / 45%)); }
 .promo-stage .grain { position: absolute; inset: -50%; pointer-events: none; opacity: .08; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); animation: promo-grain .5s steps(4) infinite; }
 @keyframes promo-grain { 0% { transform: translate(0,0); } 25% { transform: translate(-3%,2%); } 50% { transform: translate(2%,-3%); } 75% { transform: translate(-2%,-1%); } }
 .promo-stage .beat { position: absolute; opacity: 0; visibility: hidden; pointer-events: none; }
@@ -248,15 +248,15 @@
 .promo-stage .tag .big em { font-style: normal; color: var(--flare); }
 .promo-stage .corner { left: 5cqw; top: 5cqw; }
 .promo-stage .corner .big { font-size: 6.2cqw; }
-.promo-stage .namebar { left: 5cqw; bottom: 10cqw; display: flex; align-items: stretch; box-shadow: 0 1cqw 3cqw color-mix(in oklab, var(--night) 40%, transparent); }
+.promo-stage .namebar { left: 5cqw; bottom: 10cqw; display: flex; align-items: stretch; box-shadow: 0 1cqw 3cqw rgb(0 0 0 / 40%); }
 .promo-stage .namebar .num { background: var(--flare); color: var(--night); font-family: var(--display); font-size: 6cqw; padding: .6cqw 1.8cqw; display: flex; align-items: center; }
 .promo-stage .namebar .who { background: var(--chalk); color: var(--night); padding: .9cqw 2.2cqw; display: flex; flex-direction: column; justify-content: center; }
 .promo-stage .namebar .who b { font-family: var(--display); font-weight: 400; font-size: 3.8cqw; line-height: 1; text-transform: uppercase; }
-.promo-stage .namebar .who small { font-family: var(--label); font-weight: 700; font-size: 1.7cqw; letter-spacing: .14em; text-transform: uppercase; color: var(--secondary); }
+.promo-stage .namebar .who small { font-family: var(--label); font-weight: 700; font-size: 1.7cqw; letter-spacing: .14em; text-transform: uppercase; color: #3b3d42; }
 .promo-stage .flick { inset: 0; display: grid; place-items: center; }
 .promo-stage .flick .big { font-size: 13cqw; background: var(--night); padding: 0 2cqw; }
 .promo-stage .center { inset: 0; display: grid; place-items: center; text-align: center; }
-.promo-stage .center .big { font-size: 12cqw; text-shadow: 0 .6cqw 3cqw color-mix(in oklab, var(--night) 60%, transparent); }
+.promo-stage .center .big { font-size: 12cqw; text-shadow: 0 .6cqw 3cqw rgb(0 0 0 / 60%); }
 .promo-stage .center .big.xl { font-size: 14.5cqw; }
 .promo-stage .center .big .or { color: var(--flare); }
 .promo-stage .endcard { inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2.4cqw; text-align: center; background: var(--night); }
