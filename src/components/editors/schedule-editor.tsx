@@ -117,8 +117,9 @@ export function ScheduleEditor({ teamId, seasonId, statColumns = [], year = 2026
 
   const removeGame = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("games").delete().eq("id", id);
+      const { data, error } = await supabase.from("games").delete().eq("id", id).select("id");
       if (error) throw error;
+      if (!data?.length) throw new Error("Could not remove this game. You may not have permission.");
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["games", seasonId] }),
     onError: (e: Error) => toast.error(e.message),
