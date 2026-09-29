@@ -19,9 +19,10 @@ import { ORG_TYPES, type Sport } from "@/lib/team";
 
 export const Route = createFileRoute("/start")({
   ssr: false,
-  validateSearch: (search: Record<string, unknown>) => ({
-    sport: typeof search.sport === "string" ? search.sport : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { sport?: string } => {
+    const sport = search["sport"];
+    return typeof sport === "string" ? { sport } : {};
+  },
   head: () => ({
     meta: [
       { title: "Set up your team — This Is My Team" },
@@ -56,7 +57,11 @@ function Wizard() {
   const [basics, setBasics] = useState<TeamBasics>(emptyTeamBasics);
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth", search: { sport: sportSlug }, replace: true });
+    if (!loading && !user) navigate({
+        to: "/auth",
+        search: sportSlug ? { sport: sportSlug } : {},
+        replace: true,
+      });
   }, [loading, user, sportSlug, navigate]);
 
   const sportsQuery = useQuery({

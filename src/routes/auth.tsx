@@ -12,10 +12,14 @@ const NEXT_KEY = "timt:next";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  validateSearch: (search: Record<string, unknown>): AuthSearch => ({
-    mode: search.mode === "signup" ? "signup" : search.mode === "signin" ? "signin" : undefined,
-    sport: typeof search.sport === "string" ? search.sport : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): AuthSearch => {
+    const out: AuthSearch = {};
+    const mode = search["mode"];
+    if (mode === "signin" || mode === "signup") out.mode = mode;
+    const sport = search["sport"];
+    if (typeof sport === "string") out.sport = sport;
+    return out;
+  },
   head: () => ({
     meta: [
       { title: "Sign in — This Is My Team" },

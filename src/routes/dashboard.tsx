@@ -51,7 +51,7 @@ function Dashboard() {
             <p className="eyebrow text-primary">Control room</p>
             <h1 className="display-xl mt-2 text-4xl sm:text-5xl">My teams</h1>
           </div>
-          <Link to="/start" search={{ sport: undefined }}>
+          <Link to="/start" search={{}}>
             <Btn>New team</Btn>
           </Link>
         </div>
@@ -108,7 +108,7 @@ function Dashboard() {
               <p className="text-sm text-muted-foreground">
                 You don't run a team yet. Let's fix that.
               </p>
-              <Link to="/start" search={{ sport: undefined }} className="mt-5 inline-block">
+              <Link to="/start" search={{}} className="mt-5 inline-block">
                 <Btn>Create my team</Btn>
               </Link>
             </div>
