@@ -12,3 +12,8 @@
 - [x] Hudl short/full link resolution, embed and watch fallback
 - [x] Paste schedule, file upload (CSV/Excel/Word/PDF/photo) with editable preview for roster and schedule
 - [x] Drafts show "Continue setup" on My Teams and resume at the last step
+- [ ] Photo day: multi-image roster and coach matching with review before upload
+- [ ] Plain-text roster and schedule file import through paste parser
+- [ ] Consistent coach, game, and link save/add controls
+- [ ] Multiple highlight uploads with per-file progress and searchable player tags
+- [ ] Hudl inline playback with fallback and team-branded highlight thumbnails
