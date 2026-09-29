@@ -6,9 +6,11 @@ import { Btn, Field, TextInput, SelectInput } from "@/components/ui-kit";
 import { HighlightPlayer } from "@/components/team-portrait";
 import { uploadMedia } from "@/lib/storage";
 import { validateVideo, videoSource } from "@/lib/media";
-import type { Game, Player } from "@/lib/team";
+import type { Game } from "@/lib/team";
 import type { Database } from "@/integrations/supabase/types";
 import { Search } from "lucide-react";
+import { searchLeaderPlayers } from "@/lib/leader-players";
+import { useSeasonRoster } from "@/lib/player-picker";
 
 type Highlight = Database["public"]["Tables"]["highlights"]["Row"];
 type Tag = Database["public"]["Tables"]["highlight_players"]["Row"];
@@ -24,16 +26,17 @@ export function HighlightsEditor({ teamId, seasonId }: { teamId: string; seasonI
   const [queue, setQueue] = useState<QueuedClip[]>([]);
   const [tagSearch, setTagSearch] = useState("");
   const [tagOpen, setTagOpen] = useState(false);
+  const playersQuery = useSeasonRoster(teamId, seasonId);
   const query = useQuery({ queryKey: ["highlights", seasonId], queryFn: async () => {
-    const [h, t, p, g] = await Promise.all([
+    const [h, t, g] = await Promise.all([
       supabase.from("highlights").select("*").eq("season_id", seasonId).order("featured", { ascending: false }).order("created_at", { ascending: false }),
       supabase.from("highlight_players").select("*").eq("season_id", seasonId),
-      supabase.from("players").select("*").eq("season_id", seasonId),
       supabase.from("games").select("*").eq("season_id", seasonId),
     ]);
-    for (const result of [h, t, p, g]) if (result.error) throw result.error;
-    return { clips: (h.data ?? []) as Highlight[], tags: (t.data ?? []) as Tag[], players: (p.data ?? []) as Player[], games: (g.data ?? []) as Game[] };
+    for (const result of [h, t, g]) if (result.error) throw result.error;
+    return { clips: (h.data ?? []) as Highlight[], tags: (t.data ?? []) as Tag[], games: (g.data ?? []) as Game[] };
   }});
+  const tagPlayers = searchLeaderPlayers(playersQuery.data ?? [], tagSearch);
   function refresh() { void qc.invalidateQueries({ queryKey: ["highlights", seasonId] }); }
   async function saveQueue() {
     setBusy(true);
@@ -103,12 +106,12 @@ export function HighlightsEditor({ teamId, seasonId }: { teamId: string; seasonI
       {busy && progress > 0 ? <progress value={progress} max={100} className="w-full accent-primary" aria-label="Clip upload progress" /> : null}
       <div className="sm:col-span-2">
         <p className="eyebrow mb-2 text-muted-foreground">Tagged players</p>
-         <div className="relative max-w-md"><Btn type="button" variant="outline" aria-expanded={tagOpen} onClick={() => setTagOpen(!tagOpen)}><Search className="mr-2 h-4 w-4" /> Players ({draft.playerIds.length})</Btn>{tagOpen ? <div className="absolute z-20 mt-1 max-h-72 w-full overflow-auto border border-border bg-surface p-2 shadow-lg"><TextInput aria-label="Search players" placeholder="Search name or jersey" value={tagSearch} onChange={(e) => setTagSearch(e.target.value)} /><div className="mt-2 space-y-1">{query.data?.players.filter((p) => `${p.jersey_number ?? ""} ${p.first_name} ${p.last_name}`.toLowerCase().includes(tagSearch.toLowerCase())).map((p) => <label key={p.id} className="flex cursor-pointer items-center gap-2 px-2 py-2 text-sm hover:bg-secondary"><input type="checkbox" checked={draft.playerIds.includes(p.id)} onChange={(e) => setDraft((current) => ({ ...current, playerIds: e.target.checked ? [...current.playerIds, p.id] : current.playerIds.filter((id) => id !== p.id) }))} />#{p.jersey_number ?? "—"} {p.first_name} {p.last_name}</label>)}</div></div> : null}</div>
+          <div className="relative max-w-md"><Btn type="button" variant="outline" aria-expanded={tagOpen} onClick={() => setTagOpen(!tagOpen)}><Search className="mr-2 h-4 w-4" /> Players ({draft.playerIds.length})</Btn>{tagOpen ? <div className="absolute z-20 mt-1 max-h-72 w-full overflow-auto border border-border bg-surface p-2 shadow-lg"><TextInput aria-label="Search players" placeholder="Search name or jersey" value={tagSearch} onChange={(e) => setTagSearch(e.target.value)} /><div className="mt-2 space-y-1">{playersQuery.isError ? <p role="alert" className="px-2 py-2 text-sm text-destructive">Could not load the roster. Try again.</p> : tagPlayers.map((p) => <label key={p.id} className="flex cursor-pointer items-center gap-2 px-2 py-2 text-sm hover:bg-secondary"><input type="checkbox" checked={draft.playerIds.includes(p.id)} onChange={(e) => setDraft((current) => ({ ...current, playerIds: e.target.checked ? [...current.playerIds, p.id] : current.playerIds.filter((id) => id !== p.id) }))} />#{p.jersey_number ?? "—"} {p.first_name} {p.last_name}</label>)}</div></div> : null}</div>
       </div>
       <label className="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" checked={draft.featured} onChange={(e) => setDraft({ ...draft, featured: e.target.checked })} /> Featured</label>
       <div className="flex flex-wrap gap-2 sm:col-span-2"><Btn type="submit" disabled={busy}>{editing ? "Save clip" : "Add clip"}</Btn>{editing ? <Btn type="button" variant="outline" onClick={() => { setEditing(null); setDraft({ ...empty, playerIds: [] }); }}>Cancel</Btn> : null}</div>
     </form>
-    <div className="grid gap-4 sm:grid-cols-2">{query.data?.clips.map((clip) => <article key={clip.id} className="border border-border bg-surface"><HighlightPlayer url={clip.video_url ?? ""} title={clip.title} /><div className="p-4"><h3 className="font-condensed text-xl font-bold uppercase">{clip.title}</h3><p className="text-xs text-muted-foreground">{clip.featured ? "Featured · " : ""}{query.data?.tags.filter((t) => t.highlight_id === clip.id).map((t) => query.data?.players.find((p) => p.id === t.player_id)?.first_name).filter(Boolean).join(", ")}</p><div className="mt-3 flex gap-2"><Btn type="button" variant="outline" onClick={() => { setEditing(clip.id); setDraft({ title: clip.title, game_id: clip.game_id ?? "", video_url: clip.video_url ?? "", featured: clip.featured, playerIds: query.data?.tags.filter((t) => t.highlight_id === clip.id).map((t) => t.player_id) ?? [] }); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Edit</Btn><Btn type="button" variant="danger" onClick={() => void remove(clip.id)}>Remove</Btn></div></div></article>)}</div>
+    <div className="grid gap-4 sm:grid-cols-2">{query.data?.clips.map((clip) => <article key={clip.id} className="border border-border bg-surface"><HighlightPlayer url={clip.video_url ?? ""} title={clip.title} /><div className="p-4"><h3 className="font-condensed text-xl font-bold uppercase">{clip.title}</h3><p className="text-xs text-muted-foreground">{clip.featured ? "Featured · " : ""}{query.data?.tags.filter((t) => t.highlight_id === clip.id).map((t) => playersQuery.data?.find((p) => p.id === t.player_id)?.first_name).filter(Boolean).join(", ")}</p><div className="mt-3 flex gap-2"><Btn type="button" variant="outline" onClick={() => { setEditing(clip.id); setDraft({ title: clip.title, game_id: clip.game_id ?? "", video_url: clip.video_url ?? "", featured: clip.featured, playerIds: query.data?.tags.filter((t) => t.highlight_id === clip.id).map((t) => t.player_id) ?? [] }); window.scrollTo({ top: 0, behavior: "smooth" }); }}>Edit</Btn><Btn type="button" variant="danger" onClick={() => void remove(clip.id)}>Remove</Btn></div></div></article>)}</div>
     {query.data?.clips.length === 0 ? <p className="text-sm text-muted-foreground">No highlights yet.</p> : null}
   </div>;
 }

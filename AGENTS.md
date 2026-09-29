@@ -20,4 +20,4 @@
 - Scope admin save feedback to each edited row or section, so asynchronous writes do not imply unrelated fields were saved.
 - Parse TXT/CSV/Excel imports in browser; send only Word/PDF/images to team-checked AI; review before saving.
 - Match photo-day filenames locally and review before saving to the existing private team media bucket; avoid unreviewed assignments.
-- Keep Game Leaders roster queries season-scoped and paginated, then sort numerically by jersey without deduplication; this preserves every eligible player even on large rosters or duplicate numbers.
+- Use one team-and-season-scoped, paginated roster source for every admin player picker; sort numerically by jersey, key by player ID, and never deduplicate.
