@@ -257,7 +257,6 @@ function AdminPage() {
           >
             <SectionTitle title="Team info" />
             <TeamBasicsForm value={basics} onChange={setBasics} uploadPrefix={team.id} />
-            <HeroVideoEditor teamId={team.id} value={heroVideo === undefined ? team.hero_video_url : heroVideo} onChange={setHeroVideo} />
             <div>
               <Btn type="submit" disabled={saving}>
                 Save changes
@@ -265,6 +264,7 @@ function AdminPage() {
             </div>
           </form>
         ) : null}
+        {tab === "Team info" ? <div className="mt-8"><HeroVideoEditor teamId={team.id} value={heroVideo === undefined ? team.hero_video_url : heroVideo} onChange={setHeroVideo} /></div> : null}
 
         {tab === "Roster" && season ? (
           <div className="flex flex-col gap-6">

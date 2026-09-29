@@ -9,7 +9,7 @@ type Invite = { id: string; email: string; created_at: string };
 export function MembersEditor({ teamId, isOwner }: { teamId: string; isOwner: boolean }) {
   const qc = useQueryClient(); const [email, setEmail] = useState(""); const [busy, setBusy] = useState(false);
   const query = useQuery({ queryKey: ["members", teamId], queryFn: async () => {
-    const [members, invites] = await Promise.all([supabase.from("team_members").select("id,user_id,role").eq("team_id", teamId), supabase.from("team_invites").select("id,email,created_at").eq("team_id", teamId)]);
+    const [members, invites] = await Promise.all([supabase.from("team_members").select("id,user_id,role").eq("team_id", teamId), isOwner ? supabase.from("team_invites").select("id,email,created_at").eq("team_id", teamId) : Promise.resolve({ data: [] as Invite[], error: null })]);
     if (members.error) throw members.error; if (invites.error) throw invites.error;
     const ids = (members.data ?? []).map((m) => m.user_id);
     const profiles = ids.length ? await supabase.from("profiles").select("id,email,display_name").in("id", ids) : { data: [], error: null };
