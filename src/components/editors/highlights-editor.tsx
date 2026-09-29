@@ -98,8 +98,8 @@ export function HighlightsEditor({ teamId, seasonId }: { teamId: string; seasonI
   }
   async function remove(id: string) {
     if (!window.confirm("Remove this highlight?")) return;
-    const { error } = await supabase.from("highlights").delete().eq("id", id);
-    if (error) toast.error(error.message); else { refresh(); toast.success("Highlight removed"); }
+    const { data, error } = await supabase.from("highlights").delete().eq("id", id).select("id");
+    if (error || !data?.length) toast.error(error?.message ?? "Could not remove this highlight. You may not have permission."); else { refresh(); toast.success("Highlight removed"); }
   }
   return <div className="space-y-8">
     <form className="grid gap-4 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); void save(); }}>

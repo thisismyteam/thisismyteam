@@ -66,8 +66,9 @@ export function CoachEditor({ teamId, seasonId }: { teamId: string; seasonId: st
 
   const removeCoach = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("coaches").delete().eq("id", id);
+      const { data, error } = await supabase.from("coaches").delete().eq("id", id).select("id");
       if (error) throw error;
+      if (!data?.length) throw new Error("Could not remove this coach. You may not have permission.");
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["coaches", seasonId] }),
     onError: (e: Error) => toast.error(e.message),

@@ -84,8 +84,9 @@ export function RosterEditor({
 
   const removePlayer = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("players").delete().eq("id", id);
+      const { data, error } = await supabase.from("players").delete().eq("id", id).select("id");
       if (error) throw error;
+      if (!data?.length) throw new Error("Could not remove this player. You may not have permission.");
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["players", seasonId] }); qc.invalidateQueries({ queryKey: seasonRosterQueryKey(teamId, seasonId) }); },
     onError: (e: Error) => toast.error(e.message),
