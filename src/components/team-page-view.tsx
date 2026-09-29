@@ -51,6 +51,17 @@ export function TeamPageView({ data, bottomBar }: { data: TeamPageData; bottomBa
   const [coach, setCoach] = useState<Coach | null>(null);
   const [clip, setClip] = useState<(typeof highlights)[number] | null>(null);
   const playable = highlights.filter((h) => h.video_url);
+  const [rosterSearch, setRosterSearch] = useState("");
+  const [showAllPlayers, setShowAllPlayers] = useState(false);
+  const [showAllCoaches, setShowAllCoaches] = useState(false);
+  const [showAllHighlights, setShowAllHighlights] = useState(false);
+  const jerseyNum = (p: Player) => { const n = parseInt(String(p.jersey_number ?? ""), 10); return Number.isNaN(n) ? 9999 : n; };
+  const orderedPlayers = [...players].sort((a, b) => (a.photo_url ? 0 : 1) - (b.photo_url ? 0 : 1) || jerseyNum(a) - jerseyNum(b) || `${a.last_name}`.localeCompare(`${b.last_name}`));
+  const rosterQuery = rosterSearch.trim().toLowerCase().replace(/^#/, "");
+  const filteredPlayers = rosterQuery
+    ? [...players].sort((a, b) => jerseyNum(a) - jerseyNum(b)).filter((p) => /^\d+$/.test(rosterQuery) ? String(p.jersey_number ?? "") === rosterQuery || String(p.jersey_number ?? "").startsWith(rosterQuery) : `${p.first_name} ${p.last_name}`.toLowerCase().includes(rosterQuery))
+    : orderedPlayers;
+  const visiblePlayers = rosterQuery || showAllPlayers ? filteredPlayers : filteredPlayers.slice(0, 12);
   const [email, setEmail] = useState("");
   const [following, setFollowing] = useState(false);
   const [followed, setFollowed] = useState(false);
@@ -221,26 +232,37 @@ export function TeamPageView({ data, bottomBar }: { data: TeamPageData; bottomBa
 
         {/* Roster */}
         <Section title="Roster">
+          {players.length > 12 ? (
+            <div className="mb-4 max-w-sm">
+              <label htmlFor="roster-search" className="sr-only">Search roster</label>
+              <TextInput id="roster-search" type="search" placeholder="Search name or #number" value={rosterSearch} onChange={(e) => setRosterSearch(e.target.value)} autoComplete="off" />
+            </div>
+          ) : null}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {players.map((p) => (
+            {visiblePlayers.map((p) => (
               <TeamPortrait key={p.id} name={`${p.first_name} ${p.last_name}`} image={p.photo_url} fallback={p.jersey_number ?? "—"} detail={`#${p.jersey_number ?? "—"} · ${p.position ?? "—"}`} caption={p.grade ?? ""} onClick={() => setPlayer(p)} />
             ))}
             {players.length === 0 ? <Empty>Roster coming soon.</Empty> : null}
           </div>
+          {rosterQuery && filteredPlayers.length === 0 ? <Empty>No players match “{rosterSearch}”.</Empty> : null}
+          {!rosterQuery && !showAllPlayers && orderedPlayers.length > 12 ? (
+            <Btn type="button" variant="outline" className="mt-5 min-h-12 w-full sm:w-auto" onClick={() => setShowAllPlayers(true)}>Show all {orderedPlayers.length} players</Btn>
+          ) : null}
         </Section>
 
         {/* Coaches */}
         {coaches.length ? (
           <Section title="Coaches">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-              {coaches.map((c) => (
+              {(showAllCoaches ? coaches : coaches.slice(0, 8)).map((c) => (
                 <TeamPortrait key={c.id} name={c.name} image={c.photo_url} fallback={c.name.split(/\s+/).map((part) => part[0]).slice(0, 2).join("").toUpperCase()} detail={c.title ?? "Coach"} caption="Coaching staff" onClick={() => setCoach(c)} />
               ))}
             </div>
+            {!showAllCoaches && coaches.length > 8 ? <Btn type="button" variant="outline" className="mt-5 min-h-12 w-full sm:w-auto" onClick={() => setShowAllCoaches(true)}>Show all {coaches.length} coaches</Btn> : null}
           </Section>
         ) : null}
 
-         <Section title="Highlights"><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{highlights.map((highlight) => <Btn key={highlight.id} type="button" variant="ghost" className="block h-auto w-full overflow-hidden rounded-sm border border-border bg-surface p-0 text-left" onClick={() => setClip(highlight)}><div className="relative flex aspect-video items-center justify-center overflow-hidden bg-team">{team.logo_url ? <img src={team.logo_url} alt="" className="h-28 w-28 object-contain" /> : <span className="font-condensed text-6xl font-bold text-team-foreground">{team.name.slice(0, 1)}</span>}<span className="absolute flex h-16 w-16 items-center justify-center rounded-full bg-background/80 text-foreground"><span className="ml-1 text-2xl">▶</span></span></div><div className="p-4"><p className="eyebrow text-team-secondary">{highlight.featured ? "Featured · " : ""}{games.find((g) => g.id === highlight.game_id)?.opponent ?? "Team clip"}</p><h3 className="mt-1 font-condensed text-2xl font-bold uppercase">{highlight.title}</h3></div></Btn>)}</div>{highlights.length === 0 ? <Empty>No highlights yet.</Empty> : null}</Section>
+         <Section title="Highlights"><div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:snap-none sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">{highlights.map((highlight, index) => <Btn key={highlight.id} type="button" variant="ghost" className={`block h-auto w-[78%] shrink-0 snap-start overflow-hidden rounded-sm border border-border bg-surface p-0 text-left sm:w-full ${!showAllHighlights && index >= 6 ? "sm:hidden" : ""}`} onClick={() => setClip(highlight)}><div className="relative flex aspect-video items-center justify-center overflow-hidden bg-team">{team.logo_url ? <img src={team.logo_url} alt="" className="h-28 w-28 object-contain" /> : <span className="font-condensed text-6xl font-bold text-team-foreground">{team.name.slice(0, 1)}</span>}<span className="absolute flex h-16 w-16 items-center justify-center rounded-full bg-background/80 text-foreground"><span className="ml-1 text-2xl">▶</span></span></div><div className="p-4"><p className="eyebrow text-team-secondary">{highlight.featured ? "Featured · " : ""}{games.find((g) => g.id === highlight.game_id)?.opponent ?? "Team clip"}</p><h3 className="mt-1 line-clamp-2 whitespace-normal font-condensed text-2xl font-bold uppercase">{highlight.title}</h3></div></Btn>)}</div>{!showAllHighlights && highlights.length > 6 ? <Btn type="button" variant="outline" className="mt-5 hidden min-h-12 sm:inline-flex" onClick={() => setShowAllHighlights(true)}>Show more highlights</Btn> : null}{highlights.length === 0 ? <Empty>No highlights yet.</Empty> : null}</Section>
         <Section title="Get involved"><div className="grid gap-3 sm:grid-cols-2">{involved.map((link) => <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer" className="flex min-h-24 items-center justify-between gap-4 border-l-4 border-team bg-surface p-5 transition-colors hover:bg-surface-2"><div><p className="font-condensed text-2xl font-bold uppercase">{link.label}</p>{link.description ? <p className="mt-1 text-sm text-muted-foreground">{link.description}</p> : null}</div><ArrowUpRight className="h-6 w-6 shrink-0 text-team-secondary" /></a>)}</div>{involved.length === 0 ? <Empty>No links yet.</Empty> : null}</Section>
         <Section title="Follow this team"><div className="border-l-4 border-team bg-surface p-5 sm:p-7"><p className="font-condensed text-3xl font-bold uppercase">{followerCount.toLocaleString()} followers</p><p className="mt-2 text-sm text-muted-foreground">Stay connected with {team.name}.</p>{followed ? <p className="mt-5 font-condensed text-xl font-bold uppercase text-team">You're following {team.name}!</p> : <form className="mt-5 flex max-w-lg flex-col gap-3 sm:flex-row sm:items-end" onSubmit={async (e) => { e.preventDefault(); if (following) return; setFollowing(true); const { data: success, error } = await supabase.rpc("follow_team_by_email", { _team_id: team.id, _email: email.trim() }); setFollowing(false); if (error) toast.error(error.message); else if (success === "ok") { setFollowed(true); const { data: count } = await supabase.rpc("team_follower_count", { _team_id: team.id }); if (count != null) setFollowerCount(count); } else toast.error("Could not follow right now. Try again later."); }}><div className="flex-1"><label htmlFor="follow-email" className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email</label><TextInput id="follow-email" type="email" name="email" autoComplete="email" inputMode="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} required placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} /></div><Btn type="submit" disabled={following} className="shrink-0"><Heart className="mr-2 h-4 w-4" />{following ? "Saving…" : "Follow"}</Btn></form>}</div></Section>
       </main>
