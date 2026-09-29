@@ -8,6 +8,9 @@ import type { Game } from "@/lib/team";
 import type { StatColumn } from "@/lib/team";
 import { LeadersEditor } from "@/components/editors/leaders-editor";
 import { SaveStatus, useRowSaveStatus, useSaveStatus } from "@/components/save-status";
+import { ImportPanel } from "@/components/editors/import-panel";
+import { parseSchedulePaste, type ScheduleDraftRow } from "@/lib/import/schedule-parse";
+import { tableToSchedule } from "@/lib/import/columns";
 
 const blank = {
   game_date: "",
@@ -19,8 +22,9 @@ const blank = {
   opponent_score: "",
 };
 
-export function ScheduleEditor({ teamId, seasonId, statColumns = [] }: { teamId: string; seasonId: string; statColumns?: StatColumn[] }) {
+export function ScheduleEditor({ teamId, seasonId, statColumns = [], year = 2026 }: { teamId: string; seasonId: string; statColumns?: StatColumn[]; year?: number }) {
   const qc = useQueryClient();
+  const [tab, setTab] = useState<"paste" | "one">("paste");
   const [draft, setDraft] = useState({ ...blank });
   const rowSave = useRowSaveStatus();
   const [addState, setAddState] = useSaveStatus();
@@ -62,6 +66,30 @@ export function ScheduleEditor({ teamId, seasonId, statColumns = [] }: { teamId:
       qc.invalidateQueries({ queryKey: ["games", seasonId] });
     },
      onError: (e: Error) => { setAddState("error"); toast.error(e.message); },
+  });
+
+  const importMany = useMutation({
+    mutationFn: async (rows: ScheduleDraftRow[]) => {
+      const { error } = await supabase.from("games").insert(rows.filter((r) => r.opponent.trim()).map((r) => {
+        const hasScore = r.team_score !== "" && r.opponent_score !== "";
+        return {
+          team_id: teamId,
+          season_id: seasonId,
+          game_date: /^\d{4}-\d{2}-\d{2}$/.test(r.game_date) ? r.game_date : null,
+          game_time: r.game_time || null,
+          opponent: r.opponent.trim(),
+          home_away: r.home_away,
+          location: r.location || null,
+          team_score: hasScore ? Number(r.team_score) : null,
+          opponent_score: hasScore ? Number(r.opponent_score) : null,
+          status: hasScore ? "final" : "scheduled",
+        };
+      }));
+      if (error) throw error;
+    },
+    onMutate: () => setAddState("saving"),
+    onSuccess: (_d, rows) => { setAddState("saved"); toast.success(`${rows.length} games added`); qc.invalidateQueries({ queryKey: ["games", seasonId] }); },
+    onError: (e: Error) => { setAddState("error"); toast.error(e.message); },
   });
 
   type GamePatch = Partial<{
@@ -106,6 +134,37 @@ export function ScheduleEditor({ teamId, seasonId, statColumns = [] }: { teamId:
 
   return (
     <div className="flex flex-col gap-5">
+      <div className="flex gap-2">
+        {(["paste", "one"] as const).map((t) => (
+          <button key={t} type="button" onClick={() => setTab(t)}
+            className={`h-10 rounded-md px-4 text-sm font-semibold ${tab === t ? "bg-primary text-primary-foreground" : "border border-input"}`}>
+            {t === "paste" ? "Paste or upload" : "Add one game"}
+          </button>
+        ))}
+      </div>
+      {tab === "paste" ? (
+        <ImportPanel<ScheduleDraftRow>
+          teamId={teamId}
+          kind="schedule"
+          noun={["game", "games"]}
+          columns={[
+            { key: "game_date", label: "Date", type: "date" },
+            { key: "opponent", label: "Opponent" },
+            { key: "home_away", label: "H/A", options: [{ value: "home", label: "Home" }, { value: "away", label: "Away" }, { value: "neutral", label: "Neutral" }] },
+            { key: "game_time", label: "Time", width: "w-24" },
+            { key: "location", label: "Location" },
+            { key: "team_score", label: "Us", type: "number", width: "w-16" },
+            { key: "opponent_score", label: "Them", type: "number", width: "w-16" },
+          ]}
+          pasteLabel="One game per line"
+          pasteHint="Date, opponent, home/away, time, location, score. Everything after the opponent is optional. L 39-7 means we lost 7-39."
+          pastePlaceholder={"Aug 21, Valencia, Away, L 39-7\nAug 28 | Culver City | Home | W 28-14\n10/2 at Lawndale 7pm"}
+          parsePaste={(text) => parseSchedulePaste(text, year)}
+          parseTable={(rows) => tableToSchedule(rows, year)}
+          onSave={async (rows) => { await importMany.mutateAsync(rows); }}
+          saving={importMany.isPending}
+        />
+      ) : (
       <form
         className="panel grid gap-3 p-4 sm:grid-cols-12"
         onSubmit={(e) => {
@@ -170,6 +229,7 @@ export function ScheduleEditor({ teamId, seasonId, statColumns = [] }: { teamId:
           </Btn>
         </div>
       </form>
+      )}
        <div className="-mt-3"><SaveStatus state={addState} /></div>
 
       <div className="flex flex-col gap-2">

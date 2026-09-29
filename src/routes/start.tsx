@@ -65,14 +65,15 @@ function Wizard() {
   const [seasonId, setSeasonId] = useState<string | null>(null);
   const [basics, setBasics] = useState<TeamBasics>(emptyTeamBasics);
   const [resumeError, setResumeError] = useState("");
+  const [role, setRole] = useState<string>("owner");
   const checkoutFn = useServerFn(startTeamCheckout);
 
   useEffect(() => {
-    if (!user || !resumedTeamId) return;
+    if (!user || !resumedTeamId || resumedTeamId === teamId) return;
     let active = true;
     (async () => {
       const { data: membership } = await supabase.from("team_members").select("role").eq("team_id", resumedTeamId).eq("user_id", user.id).maybeSingle();
-      if (membership?.role !== "owner") throw new Error("Only the team Owner can return to checkout.");
+      if (!membership) throw new Error("You don't manage this team.");
       const { data: team, error } = await supabase.from("teams").select("*, organizations(name, org_type)").eq("id", resumedTeamId).single();
       if (error || !team || team.published) throw new Error("This team is already live or unavailable.");
       const { data: season } = await supabase.from("seasons").select("id, label").eq("team_id", resumedTeamId).eq("is_current", true).maybeSingle();
@@ -83,10 +84,16 @@ function Wizard() {
        setBasics({ name: team.name, mascot: existingMascot(team.name, team.organizations?.name ?? "", team.mascot), level: team.level, seasonLabel: season.label,
         slug: team.slug, slugTouched: true, logo_url: team.logo_url, primary_color: team.primary_color,
         secondary_color: team.secondary_color, tagline: team.tagline ?? "" });
-      setStep(5);
+      setRole(membership.role);
+      const saved = Number(window.localStorage.getItem(`tmt-setup-step:${team.id}`));
+      setStep(checkout === "cancel" ? 5 : saved >= 2 && saved <= 5 ? saved : 3);
     })().catch((e) => { if (active) setResumeError(e instanceof Error ? e.message : "Could not load the review."); });
     return () => { active = false; };
-  }, [user, resumedTeamId]);
+  }, [user, resumedTeamId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (teamId && step >= 2) window.localStorage.setItem(`tmt-setup-step:${teamId}`, String(step));
+  }, [teamId, step]);
 
   useEffect(() => {
     if (!loading && !user) navigate({
@@ -220,6 +227,8 @@ function Wizard() {
 
         setTeamId(team.id);
         setSeasonId(season.id);
+        window.localStorage.setItem(`tmt-setup-step:${team.id}`, "3");
+        navigate({ to: "/start", search: { teamId: team.id }, replace: true });
       }
       setBasics((b) => ({ ...b, slug }));
       setStep(3);
@@ -375,7 +384,7 @@ function Wizard() {
         {step === 4 && teamId && seasonId ? (
           <div className="flex flex-col gap-6">
             <SectionTitle eyebrow="Step 4" title="Schedule" />
-            <ScheduleEditor teamId={teamId} seasonId={seasonId} />
+            <ScheduleEditor teamId={teamId} seasonId={seasonId} year={Number(basics.seasonLabel) || 2026} />
             <div className="flex gap-2">
               <Btn variant="outline" onClick={() => setStep(3)}>
                 Back
@@ -424,9 +433,13 @@ function Wizard() {
               <Link to="/preview/$teamId" params={{ teamId }} className="inline-flex h-11 items-center rounded-md border border-border px-5 text-sm font-bold uppercase hover:bg-surface-2">
                 Preview my page
               </Link>
-              <Btn onClick={publish} disabled={busy} className="px-8">
-                Pay and publish
-              </Btn>
+              {role === "owner" ? (
+                <Btn onClick={publish} disabled={busy} className="px-8">
+                  Pay and publish
+                </Btn>
+              ) : (
+                <p className="self-center text-sm text-muted-foreground">Only the team Owner can pay and publish.</p>
+              )}
             </div>
           </div>
         ) : null}
