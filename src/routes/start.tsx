@@ -421,6 +421,9 @@ function Wizard() {
               <Btn variant="outline" onClick={() => setStep(4)}>
                 Back
               </Btn>
+              <Link to="/preview/$teamId" params={{ teamId }} className="inline-flex h-11 items-center rounded-md border border-border px-5 text-sm font-bold uppercase hover:bg-surface-2">
+                Preview my page
+              </Link>
               <Btn onClick={publish} disabled={busy} className="px-8">
                 Pay and publish
               </Btn>
