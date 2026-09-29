@@ -22,7 +22,8 @@ export function videoSource(url: string): { kind: "file" | "embed"; url: string 
       if (!id) return null;
       return { kind: "embed", url: `https://www.hudl.com/embed/video/${id}` };
     }
-    if (/\.(mp4|mov|webm)$/i.test(parsed.pathname) || parsed.pathname.includes("/storage/v1/object/sign/team-videos/"))
+    // Direct files are only supported from our team's private media bucket.
+    if (parsed.pathname.includes("/storage/v1/object/sign/team-videos/") && /\.(mp4|mov|webm)$/i.test(parsed.pathname))
       return { kind: "file", url };
   } catch { return null; }
   return null;

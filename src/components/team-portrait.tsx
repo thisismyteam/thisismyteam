@@ -1,4 +1,5 @@
 import { Btn } from "@/components/ui-kit";
+import { videoSource } from "@/lib/media";
 
 type Props = { name: string; image: string | null; fallback: string; detail: string; caption?: string; onClick?: () => void };
 
