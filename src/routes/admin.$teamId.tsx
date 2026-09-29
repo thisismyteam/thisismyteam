@@ -277,7 +277,7 @@ function AdminPage() {
             </div>
           </form>
         ) : null}
-        {tab === "Team info" ? <div className="mt-8"><AppIconEditor teamId={team.id} teamName={team.name} value={team.app_icon_url ?? null} logoUrl={basics.logo_url ?? null} color={basics.primary_color} onSaved={() => qc.invalidateQueries({ queryKey: ["admin-team", teamId] })} /></div> : null}
+        {tab === "Team info" ? <div className="mt-8"><AppIconEditor teamId={team.id} teamName={team.name} value={(team as { app_icon_url?: string | null }).app_icon_url ?? null} logoUrl={basics.logo_url ?? null} color={basics.primary_color} onSaved={() => qc.invalidateQueries({ queryKey: ["admin-team", teamId] })} /></div> : null}
         {tab === "Team info" ? <div className="mt-8"><HeroVideoEditor teamId={team.id} value={heroVideo === undefined ? team.hero_video_url : heroVideo} onChange={setHeroVideo} /></div> : null}
 
         {tab === "Roster" && season ? (

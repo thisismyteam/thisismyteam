@@ -32,11 +32,11 @@ export function AppIconEditor({ teamId, teamName, value, logoUrl, color, onSaved
 
   async function pick(file?: File) {
     if (!file) return;
-    if (!/^image\/(png|jpeg|webp)$/.test(file.type)) return toast.error("Use a PNG, JPG or WebP image.");
+    if (!/^image\/(png|jpeg|webp)$/.test(file.type)) { toast.error("Use a PNG, JPG or WebP image."); return; }
     try {
       const { w, h } = await readSize(file);
-      if (w < 512 || h < 512) return toast.error(`That image is ${w}x${h}. Use at least 512x512.`);
-      if (Math.abs(w - h) > 2) return toast.error("The app icon must be square.");
+      if (w < 512 || h < 512) { toast.error(`That image is ${w}x${h}. Use at least 512x512.`); return; }
+      if (Math.abs(w - h) > 2) { toast.error("The app icon must be square."); return; }
       setState("saving");
       const url = await uploadMedia("team-logos", file, teamId);
       await save(url);
