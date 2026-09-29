@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep the landing video sequence in `LandingVideoHero` with its scoped styles in `src/styles.css`; its captions are driven by the video clock so they stay synchronized after looping or seeking.
