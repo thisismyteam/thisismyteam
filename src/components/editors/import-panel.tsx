@@ -47,6 +47,12 @@ export function ImportPanel<T extends Row>({
     try {
       const content = await readImportFile(file);
       let table: string[][];
+      if (content.kind === "text" && file.name.toLowerCase().endsWith(".txt")) {
+        const parsed = parsePaste(content.text);
+        if (parsed.length === 0) toast.error(`No ${noun[1]} found in that file.`);
+        else setRows(parsed);
+        return;
+      }
       if (content.kind === "table") table = content.rows;
       else {
         const res = await extract({ data: { teamId, kind, fileName: file.name, ...(content.kind === "text" ? { text: content.text } : { dataUrl: content.dataUrl }) } });
@@ -142,7 +148,7 @@ export function ImportPanel<T extends Row>({
         <input ref={fileRef} type="file" accept={IMPORT_ACCEPT} className="hidden" aria-label="Upload a file"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFile(f); }} />
       </div>
-      <p className="text-xs text-muted-foreground">CSV, Excel (.xlsx), Word (.docx), PDF, or a photo/screenshot. Photos, PDFs and Word files are read by AI and may take a few seconds.</p>
+      <p className="text-xs text-muted-foreground">Text (.txt), CSV, Excel (.xlsx), Word (.docx), PDF, or a photo/screenshot. Photos, PDFs and Word files are read by AI and may take a few seconds.</p>
     </div>
   );
 }

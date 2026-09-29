@@ -9,6 +9,7 @@ import { emptyRosterRow, type Player, type RosterDraftRow } from "@/lib/team";
 import { tableToRoster, type RosterImportRow } from "@/lib/import/columns";
 import { ImportPanel } from "@/components/editors/import-panel";
 import { SaveStatus, useRowSaveStatus, useSaveStatus } from "@/components/save-status";
+import { PhotoDay } from "@/components/editors/photo-day";
 
 export function RosterEditor({
   teamId,
@@ -205,6 +206,7 @@ export function RosterEditor({
         <p className="eyebrow text-muted-foreground">
           Roster — {playersQuery.data?.length ?? 0} players
         </p>
+        <PhotoDay teamId={teamId} table="players" people={(playersQuery.data ?? []).map((p) => ({ id: p.id, name: `${p.first_name} ${p.last_name}`, jersey: p.jersey_number }))} onSaved={() => void qc.invalidateQueries({ queryKey: ["players", seasonId] })} />
         {(playersQuery.data ?? []).map((p) => (
           <div
             key={p.id}

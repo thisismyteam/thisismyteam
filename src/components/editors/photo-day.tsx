@@ -3,6 +3,7 @@ import { ImageUp } from "lucide-react";
 import { toast } from "sonner";
 import { Btn, SelectInput } from "@/components/ui-kit";
 import { uploadMedia } from "@/lib/storage";
+import { supabase } from "@/integrations/supabase/client";
 
 type Person = { id: string; name: string; jersey?: string | null };
 type Assignment = { file: File; personId: string; state: "ready" | "saving" | "saved" | "error" };
