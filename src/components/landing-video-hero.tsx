@@ -56,7 +56,10 @@ export function LandingVideoHero() {
   return (
     <>
       <div className="promo-stage" ref={stageRef} aria-label="This Is My Team introduction">
-        <video ref={videoRef} src="/hero.mp4" poster="/hero-poster.jpg" autoPlay muted loop playsInline preload="auto" aria-hidden="true" />
+        <video ref={videoRef} poster="/hero-poster.jpg" autoPlay muted loop playsInline preload="auto" aria-hidden="true">
+          <source src="/hero.mp4" type="video/mp4" />
+          <source src="/hero.webm" type="video/webm" />
+        </video>
         <div className="grade" />
         <div className="grain" />
         <div className="beat q" data-in="0" data-out="2.0">
