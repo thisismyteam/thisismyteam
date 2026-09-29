@@ -1,5 +1,10 @@
 import { Btn } from "@/components/ui-kit";
 import { videoSource } from "@/lib/media";
+import { resolveHudlVideo } from "@/lib/hudl.functions";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { ArrowUpRight } from "lucide-react";
+import { useState } from "react";
 
 type Props = { name: string; image: string | null; fallback: string; detail: string; caption?: string; onClick?: () => void };
 
@@ -21,7 +26,16 @@ export function TeamPortrait({ name, image, fallback, detail, caption, onClick }
 export function HighlightPlayer({ url, title }: { url: string; title: string }) {
   const source = videoSource(url);
   if (!source) return <p className="text-sm text-muted-foreground">This clip cannot be played here.</p>;
-  return source.kind === "embed" ? (
+  return source.kind === "hudl" ? <HudlPlayer url={url} title={title} /> : source.kind === "embed" ? (
     <iframe title={title} src={source.url} className="aspect-video w-full bg-background" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />
   ) : <video src={source.url} controls playsInline preload="metadata" className="aspect-video w-full bg-background object-contain" />;
+}
+
+function HudlPlayer({ url, title }: { url: string; title: string }) {
+  const [playHere, setPlayHere] = useState(false);
+  const resolve = useServerFn(resolveHudlVideo);
+  const { data, isPending } = useQuery({ queryKey: ["hudl-video", url], queryFn: () => resolve({ data: { url } }), retry: false, staleTime: 60 * 60 * 1000 });
+  if (isPending) return <div className="flex aspect-video items-center justify-center bg-surface-2 text-sm text-muted-foreground">Loading clip...</div>;
+  if (data?.embed && playHere) return <div><iframe title={title} src={data.embed} className="aspect-video w-full bg-background" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" /><div className="flex flex-wrap items-center gap-4 p-3"><a className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline" href={data.watch ?? url} target="_blank" rel="noopener noreferrer">Watch on Hudl <ArrowUpRight className="h-4 w-4" /></a><Btn variant="outline" onClick={() => setPlayHere(false)}>Player not working?</Btn></div></div>;
+  return <div className="flex aspect-video flex-col items-center justify-center gap-4 bg-team p-6 text-center text-team-foreground"><span className="font-condensed text-3xl font-bold uppercase sm:text-5xl">{title}</span><a href={data?.watch ?? url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 border border-current px-5 py-3 text-sm font-bold uppercase">Watch on Hudl <ArrowUpRight className="h-5 w-5" /></a>{data?.embed ? <Btn variant="outline" onClick={() => setPlayHere(true)} className="border-current text-team-foreground">Play here instead</Btn> : null}</div>;
 }

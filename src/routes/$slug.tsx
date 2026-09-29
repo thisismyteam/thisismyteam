@@ -1,5 +1,8 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/lib/auth";
+import { SiteHeader } from "@/components/site-header";
 import { Volume2, VolumeX, Heart, ArrowUpRight, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -95,6 +98,12 @@ function TeamPage() {
   const [following, setFollowing] = useState(false);
   const [followed, setFollowed] = useState(false);
   const [followerCount, setFollowerCount] = useState(data.followerCount ?? 0);
+  const { user } = useAuth();
+  const membership = useQuery({ queryKey: ["team-access", team.id, user?.id], enabled: !!user, queryFn: async () => {
+    const { data: row, error } = await supabase.from("team_members").select("role").eq("team_id", team.id).eq("user_id", user?.id ?? "").maybeSingle();
+    if (error) throw error;
+    return row;
+  } });
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const [muted, setMuted] = useState(true);
@@ -110,6 +119,7 @@ function TeamPage() {
         } as React.CSSProperties
       }
     >
+      <SiteHeader />
       {/* Hero */}
       <header className="relative overflow-hidden">
         <div className="relative h-[62vh] min-h-[420px] w-full sm:h-[70vh]">
@@ -164,8 +174,9 @@ function TeamPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
 
           <div className="absolute inset-x-0 bottom-0 mx-auto max-w-6xl px-4 pb-8 sm:px-6 sm:pb-12">
-            <p className="eyebrow" style={{ color: secondary }}>
-              {team.organizations?.name} · {sport?.name} · {team.level}
+             {membership.data?.role === "owner" || membership.data?.role === "contributor" ? <Link to="/admin/$teamId" params={{ teamId: team.id }} className="mb-4 inline-flex h-11 items-center bg-primary px-5 text-sm font-bold uppercase text-primary-foreground hover:bg-primary/90">Manage team</Link> : null}
+             <p className="eyebrow text-foreground">
+               {team.organizations?.name}
             </p>
             <h1 className="display-xl mt-2 text-5xl leading-[0.9] sm:text-7xl lg:text-8xl">
               {team.name}

@@ -6,11 +6,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Btn, Field, TextInput } from "@/components/ui-kit";
 import { uploadMedia } from "@/lib/storage";
 import type { Coach } from "@/lib/team";
+import { SaveStatus, useRowSaveStatus, useSaveStatus } from "@/components/save-status";
 
 export function CoachEditor({ teamId, seasonId }: { teamId: string; seasonId: string }) {
   const qc = useQueryClient();
   const [name, setName] = useState("");
   const [title, setTitle] = useState("");
+  const rowSave = useRowSaveStatus();
+  const [addState, setAddState] = useSaveStatus();
 
   const coachesQuery = useQuery({
     queryKey: ["coaches", seasonId],
@@ -37,12 +40,14 @@ export function CoachEditor({ teamId, seasonId }: { teamId: string; seasonId: st
       });
       if (error) throw error;
     },
-    onSuccess: () => {
+     onMutate: () => setAddState("saving"),
+     onSuccess: () => {
+       setAddState("saved");
       setName("");
       setTitle("");
       qc.invalidateQueries({ queryKey: ["coaches", seasonId] });
     },
-    onError: (e: Error) => toast.error(e.message),
+     onError: (e: Error) => { setAddState("error"); toast.error(e.message); },
   });
 
   const updateCoach = useMutation({
@@ -50,8 +55,9 @@ export function CoachEditor({ teamId, seasonId }: { teamId: string; seasonId: st
       const { error } = await supabase.from("coaches").update(patch).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["coaches", seasonId] }),
-    onError: (e: Error) => toast.error(e.message),
+     onMutate: ({ id }) => rowSave.set(id, "saving"),
+     onSuccess: (_data, { id }) => { rowSave.set(id, "saved"); qc.invalidateQueries({ queryKey: ["coaches", seasonId] }); },
+     onError: (e: Error, { id }) => { rowSave.set(id, "error"); toast.error(e.message); },
   });
 
   const removeCoach = useMutation({
@@ -97,19 +103,20 @@ export function CoachEditor({ teamId, seasonId }: { teamId: string; seasonId: st
           </Btn>
         </div>
       </form>
+       <div className="-mt-2"><SaveStatus state={addState} /></div>
 
       {(coachesQuery.data ?? []).map((c) => (
         <div key={c.id} className="panel grid items-end gap-3 p-3 sm:grid-cols-12 sm:p-4">
           <Field label="Name" className="sm:col-span-4">
             <TextInput
               defaultValue={c.name}
-              onBlur={(e) => updateCoach.mutate({ id: c.id, patch: { name: e.target.value } })}
+               onBlur={(e) => { if (e.target.value !== c.name) updateCoach.mutate({ id: c.id, patch: { name: e.target.value } }); }}
             />
           </Field>
           <Field label="Title" className="sm:col-span-5">
             <TextInput
               defaultValue={c.title ?? ""}
-              onBlur={(e) => updateCoach.mutate({ id: c.id, patch: { title: e.target.value } })}
+               onBlur={(e) => { if (e.target.value !== (c.title ?? "")) updateCoach.mutate({ id: c.id, patch: { title: e.target.value } }); }}
             />
           </Field>
           <div className="flex items-center gap-2 sm:col-span-3 sm:justify-end">
@@ -134,6 +141,7 @@ export function CoachEditor({ teamId, seasonId }: { teamId: string; seasonId: st
               <Trash2 className="h-4 w-4" />
             </button>
           </div>
+           <div className="sm:col-span-12"><SaveStatus state={rowSave.state(c.id)} /></div>
         </div>
       ))}
       {coachesQuery.data?.length === 0 ? (
