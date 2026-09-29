@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Btn, Field, SelectInput, TextInput } from "@/components/ui-kit";
 import type { Game } from "@/lib/team";
+import type { StatColumn } from "@/lib/team";
+import { LeadersEditor } from "@/components/editors/leaders-editor";
 
 const blank = {
   game_date: "",
@@ -16,7 +18,7 @@ const blank = {
   opponent_score: "",
 };
 
-export function ScheduleEditor({ teamId, seasonId }: { teamId: string; seasonId: string }) {
+export function ScheduleEditor({ teamId, seasonId, statColumns = [] }: { teamId: string; seasonId: string; statColumns?: StatColumn[] }) {
   const qc = useQueryClient();
   const [draft, setDraft] = useState({ ...blank });
 
@@ -168,7 +170,8 @@ export function ScheduleEditor({ teamId, seasonId }: { teamId: string; seasonId:
           Schedule — {gamesQuery.data?.length ?? 0} games
         </p>
         {(gamesQuery.data ?? []).map((g) => (
-          <div key={g.id} className="panel grid items-end gap-3 p-3 sm:grid-cols-12 sm:p-4">
+          <div key={g.id} className="panel">
+          <div className="grid items-end gap-3 p-3 sm:grid-cols-12 sm:p-4">
             <Field label="Date" className="sm:col-span-2">
               <TextInput
                 type="date"
@@ -241,6 +244,8 @@ export function ScheduleEditor({ teamId, seasonId }: { teamId: string; seasonId:
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
+          </div>
+          {g.status === "final" ? <LeadersEditor teamId={teamId} seasonId={seasonId} game={g} columns={statColumns} /> : null}
           </div>
         ))}
         {gamesQuery.data?.length === 0 ? (
