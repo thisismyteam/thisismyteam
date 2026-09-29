@@ -10,3 +10,6 @@
 <!-- LOVABLE:END -->
 
 - Keep the landing video sequence in `LandingVideoHero` with its scoped styles in `src/styles.css`; its captions are driven by the video clock so they stay synchronized after looping or seeking.
+- Keep public team reads in a server function and manager edits in authenticated, RLS-scoped browser calls; this preserves shareable SSR pages without exposing management data.
+- Store private team media in the existing team media buckets under team-ID folders and persist signed URLs in team records; this keeps uploads access-controlled while allowing public team pages to play approved media.
+- Claim contributor invites by verified sign-in email through the database wrapper; this prevents an unverified account from taking another person's team access.

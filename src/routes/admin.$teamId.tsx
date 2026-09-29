@@ -200,7 +200,7 @@ function AdminPage() {
       <SiteHeader />
 
       <div className="border-b border-border bg-surface">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-6 sm:px-6">
+        <div className="mx-auto grid max-w-6xl grid-cols-[3.5rem_minmax(0,1fr)] items-center gap-4 px-4 py-6 sm:grid-cols-[3.5rem_minmax(0,1fr)_auto] sm:px-6">
           <span
             className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full"
             style={{ backgroundColor: team.primary_color }}
@@ -218,7 +218,7 @@ function AdminPage() {
               {team.published ? "Live" : "Draft"}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="col-span-2 flex flex-wrap gap-2 sm:col-span-1 sm:justify-end">
             <Link to="/$slug" params={{ slug: team.slug }}>
               <Btn variant="outline">
                 View page <ExternalLink className="ml-2 h-4 w-4" />
