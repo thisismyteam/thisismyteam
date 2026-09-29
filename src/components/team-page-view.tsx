@@ -61,7 +61,7 @@ export function TeamPageView({ data, bottomBar }: { data: TeamPageData; bottomBa
   const filteredPlayers = rosterQuery
     ? [...players].sort((a, b) => jerseyNum(a) - jerseyNum(b)).filter((p) => /^\d+$/.test(rosterQuery) ? String(p.jersey_number ?? "") === rosterQuery || String(p.jersey_number ?? "").startsWith(rosterQuery) : `${p.first_name} ${p.last_name}`.toLowerCase().includes(rosterQuery))
     : orderedPlayers;
-  const visiblePlayers = rosterQuery || showAllPlayers ? filteredPlayers : filteredPlayers.slice(0, 12);
+  const visiblePlayers = rosterQuery || showAllPlayers ? filteredPlayers : filteredPlayers.slice(0, 8);
   const [email, setEmail] = useState("");
   const [following, setFollowing] = useState(false);
   const [followed, setFollowed] = useState(false);
@@ -238,14 +238,14 @@ export function TeamPageView({ data, bottomBar }: { data: TeamPageData; bottomBa
               <TextInput id="roster-search" type="search" placeholder="Search name or #number" value={rosterSearch} onChange={(e) => setRosterSearch(e.target.value)} autoComplete="off" />
             </div>
           ) : null}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {visiblePlayers.map((p) => (
               <TeamPortrait key={p.id} name={`${p.first_name} ${p.last_name}`} image={p.photo_url} fallback={p.jersey_number ?? "—"} detail={`#${p.jersey_number ?? "—"} · ${p.position ?? "—"}`} caption={p.grade ?? ""} onClick={() => setPlayer(p)} />
             ))}
             {players.length === 0 ? <Empty>Roster coming soon.</Empty> : null}
           </div>
           {rosterQuery && filteredPlayers.length === 0 ? <Empty>No players match “{rosterSearch}”.</Empty> : null}
-          {!rosterQuery && !showAllPlayers && orderedPlayers.length > 12 ? (
+          {!rosterQuery && !showAllPlayers && orderedPlayers.length > 8 ? (
             <Btn type="button" variant="outline" className="mt-5 min-h-12 w-full sm:w-auto" onClick={() => setShowAllPlayers(true)}>Show all {orderedPlayers.length} players</Btn>
           ) : null}
         </Section>
@@ -253,7 +253,7 @@ export function TeamPageView({ data, bottomBar }: { data: TeamPageData; bottomBa
         {/* Coaches */}
         {coaches.length ? (
           <Section title="Coaches">
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {(showAllCoaches ? coaches : coaches.slice(0, 8)).map((c) => (
                 <TeamPortrait key={c.id} name={c.name} image={c.photo_url} fallback={c.name.split(/\s+/).map((part) => part[0]).slice(0, 2).join("").toUpperCase()} detail={c.title ?? "Coach"} caption="Coaching staff" onClick={() => setCoach(c)} />
               ))}
