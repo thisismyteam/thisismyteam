@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -16,12 +17,17 @@ import { CoachEditor } from "@/components/editors/coach-editor";
 import { ScheduleEditor } from "@/components/editors/schedule-editor";
 import { isReservedSlug, slugify } from "@/lib/slug";
 import { ORG_TYPES, type Sport } from "@/lib/team";
+import { startTeamCheckout } from "@/lib/billing.functions";
 
 export const Route = createFileRoute("/start")({
   ssr: false,
-  validateSearch: (search: Record<string, unknown>): { sport?: string } => {
+  validateSearch: (search: Record<string, unknown>): { sport?: string; teamId?: string; checkout?: string } => {
     const sport = search["sport"];
-    return typeof sport === "string" ? { sport } : {};
+    return {
+      ...(typeof sport === "string" ? { sport } : {}),
+      ...(typeof search["teamId"] === "string" ? { teamId: search["teamId"] as string } : {}),
+      ...(search["checkout"] === "cancel" ? { checkout: "cancel" } : {}),
+    };
   },
   head: () => ({
     meta: [
@@ -45,7 +51,7 @@ export const Route = createFileRoute("/start")({
 const STEPS = ["Organization", "Team", "Roster", "Schedule", "Review"];
 
 function Wizard() {
-  const { sport: sportSlug } = Route.useSearch();
+  const { sport: sportSlug, teamId: resumedTeamId, checkout } = Route.useSearch();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -57,6 +63,29 @@ function Wizard() {
   const [teamId, setTeamId] = useState<string | null>(null);
   const [seasonId, setSeasonId] = useState<string | null>(null);
   const [basics, setBasics] = useState<TeamBasics>(emptyTeamBasics);
+  const [resumeError, setResumeError] = useState("");
+  const checkoutFn = useServerFn(startTeamCheckout);
+
+  useEffect(() => {
+    if (!user || !resumedTeamId) return;
+    let active = true;
+    (async () => {
+      const { data: membership } = await supabase.from("team_members").select("role").eq("team_id", resumedTeamId).eq("user_id", user.id).maybeSingle();
+      if (membership?.role !== "owner") throw new Error("Only the team Owner can return to checkout.");
+      const { data: team, error } = await supabase.from("teams").select("*, organizations(name, org_type)").eq("id", resumedTeamId).single();
+      if (error || !team || team.published) throw new Error("This team is already live or unavailable.");
+      const { data: season } = await supabase.from("seasons").select("id, label").eq("team_id", resumedTeamId).eq("is_current", true).maybeSingle();
+      if (!season) throw new Error("Season unavailable.");
+      if (!active) return;
+      setTeamId(team.id); setSeasonId(season.id); setOrgId(team.organization_id);
+      setOrgName(team.organizations?.name ?? ""); setOrgType(team.organizations?.org_type ?? "school"); setSportId(team.sport_id);
+      setBasics({ name: team.name, mascot: team.mascot ?? "", level: team.level, seasonLabel: season.label,
+        slug: team.slug, slugTouched: true, logo_url: team.logo_url, primary_color: team.primary_color,
+        secondary_color: team.secondary_color, tagline: team.tagline ?? "" });
+      setStep(5);
+    })().catch((e) => { if (active) setResumeError(e instanceof Error ? e.message : "Could not load the review."); });
+    return () => { active = false; };
+  }, [user, resumedTeamId]);
 
   useEffect(() => {
     if (!loading && !user) navigate({
@@ -204,15 +233,10 @@ function Wizard() {
     if (!teamId) return;
     setBusy(true);
     try {
-      const { error } = await supabase
-        .from("teams")
-        .update({ published: true, published_at: new Date().toISOString() })
-        .eq("id", teamId);
-      if (error) throw error;
-      toast.success("Your team is live!");
-      navigate({ to: "/$slug", params: { slug: basics.slug } });
+      const { url } = await checkoutFn({ data: { teamId } });
+      window.location.assign(url);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not publish.");
+      toast.error(e instanceof Error ? e.message : "Could not start checkout.");
     } finally {
       setBusy(false);
     }
@@ -252,6 +276,7 @@ function Wizard() {
       </div>
 
       <main className="mx-auto max-w-5xl px-4 py-8 pb-24 sm:px-6 sm:py-12">
+        {resumeError ? <p role="alert" className="mb-6 text-destructive">{resumeError}</p> : null}
         {step === 1 ? (
           <form
             className="flex flex-col gap-6"
@@ -362,6 +387,7 @@ function Wizard() {
         {step === 5 && teamId ? (
           <div className="flex flex-col gap-6">
             <SectionTitle eyebrow="Step 5" title="Review and go live" />
+            {checkout === "cancel" ? <p role="alert" className="border-l-4 border-primary bg-surface p-4 text-sm">Checkout was cancelled. No payment was made and your team is still unpublished.</p> : null}
             <div className="panel flex flex-col gap-4 p-6">
               <div className="flex items-center gap-4">
                 <span
@@ -386,6 +412,10 @@ function Wizard() {
                 </span>
               </p>
             </div>
+            <div className="flex items-baseline justify-between border-y border-border py-5">
+              <span className="font-semibold">This Is My Team - Team Season</span>
+              <span className="display-xl text-2xl">$299 / season</span>
+            </div>
             <div className="flex flex-wrap gap-2">
               <Btn variant="outline" onClick={() => setStep(4)}>
                 Back
@@ -394,9 +424,6 @@ function Wizard() {
                 Pay and publish
               </Btn>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Payments come later — for now this publishes your page straight away.
-            </p>
           </div>
         ) : null}
       </main>
