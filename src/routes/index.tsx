@@ -3,8 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { PlayCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/site-header";
+import { LandingVideoHero } from "@/components/landing-video-hero";
 import type { Sport } from "@/lib/team";
-import heroImage from "@/assets/hero-stadium.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -16,6 +16,8 @@ export const Route = createFileRoute("/")({
           "Any school, club or league can launch a pro-level home for their team in minutes. Roster, schedule, highlights and fans, all in one place.",
       },
       { property: "og:title", content: "This Is My Team — Every team deserves to be seen" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       {
         property: "og:description",
         content:
@@ -64,18 +66,13 @@ function Landing() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
 
-      {/* ---------- Hero ---------- */}
+      <LandingVideoHero />
+
+      {/* ---------- Mission ---------- */}
       <section className="relative overflow-hidden border-b border-border">
-        <img
-          src={heroImage}
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 h-full w-full object-cover opacity-40"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
-        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-36">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
           <p className="eyebrow text-primary">thisismyteam.app</p>
-          <h1 className="display-xl mt-4 max-w-4xl text-[clamp(2.75rem,10vw,7rem)]">
+          <h1 className="display-xl mt-4 max-w-4xl text-[clamp(2.75rem,10vw,7rem)] leading-[1.05]">
             Every team
             <br />
             deserves to
