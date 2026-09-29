@@ -10,3 +10,5 @@
 - [x] Organization-based mascot/display naming for new and existing teams
 - [x] Visible save states for team, roster, coaches, schedule and links
 - [x] Hudl short/full link resolution, embed and watch fallback
+- [x] Paste schedule, file upload (CSV/Excel/Word/PDF/photo) with editable preview for roster and schedule
+- [x] Drafts show "Continue setup" on My Teams and resume at the last step

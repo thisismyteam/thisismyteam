@@ -18,3 +18,4 @@
 - Keep team display names editable while suggesting organization short name plus mascot; this preserves existing team names and avoids a destructive rename.
 - Resolve Hudl short URLs and inspect embed availability server-side, then show a direct watch fallback by default; cross-origin player failures cannot be read by the parent page.
 - Scope admin save feedback to each edited row or section, so asynchronous writes do not imply unrelated fields were saved.
+- Roster/schedule imports parse CSV/Excel in the browser and send only Word/PDF/images to an authenticated, team-member-checked AI server function; all imports land in an editable preview so nothing saves without confirmation.
