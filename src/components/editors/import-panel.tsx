@@ -1,3 +1,4 @@
+import { DropZone } from "@/components/drop-zone";
 import { useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, FileUp, Trash2 } from "lucide-react";
@@ -141,14 +142,8 @@ export function ImportPanel<T extends Row>({
           const parsed = parsePaste(text);
           if (parsed.length) setRows(parsed); else toast.error(`No ${noun[1]} found. Check the format.`);
         }}>Review list</Btn>
-        <span className="text-xs text-muted-foreground">or</span>
-        <Btn type="button" variant="outline" disabled={!!reading} onClick={() => fileRef.current?.click()}>
-          <FileUp className="mr-1 h-4 w-4" /> {reading ? `Reading ${reading}...` : "Upload a file"}
-        </Btn>
-        <input ref={fileRef} type="file" accept={IMPORT_ACCEPT} className="hidden" aria-label="Upload a file"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFile(f); }} />
       </div>
-      <p className="text-xs text-muted-foreground">Text (.txt), CSV, Excel (.xlsx), Word (.docx), PDF, or a photo/screenshot. Photos, PDFs and Word files are read by AI and may take a few seconds.</p>
+      <DropZone label={reading ? `Reading ${reading}...` : "Upload a file"} hint="Text (.txt), CSV, Excel (.xlsx), Word (.docx), PDF, or a photo/screenshot. Photos, PDFs and Word files are read by AI" accept={IMPORT_ACCEPT} disabled={!!reading} onFiles={(files) => { const f = files[0]; if (f) void handleFile(f); }} />
     </div>
   );
 }

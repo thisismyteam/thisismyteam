@@ -1,5 +1,6 @@
+import { DropZone } from "@/components/drop-zone";
 import { useRef, useState } from "react";
-import { ImageUp } from "lucide-react";
+import { X } from "lucide-react";
 import { toast } from "sonner";
 import { Btn, SelectInput } from "@/components/ui-kit";
 import { uploadMedia } from "@/lib/storage";
@@ -53,16 +54,11 @@ export function PhotoDay({ people, teamId, table, onSaved }: { people: Person[];
   }
 
   return <div className="space-y-3">
-    <Btn type="button" variant="outline" onClick={() => input.current?.click()}><ImageUp className="mr-2 h-4 w-4" />Upload photos</Btn>
-    <input ref={input} type="file" accept="image/*" multiple className="hidden" aria-label="Upload photos" onChange={(e) => {
-      const files = Array.from(e.target.files ?? []).filter((file) => file.type.startsWith("image/"));
-      setItems(files.map((file) => ({ file, personId: matchPhoto(file.name, people), state: "ready" })));
-      e.target.value = "";
-    }} />
+    <DropZone label="Upload photos" hint="JPG or PNG, select several at once. Name files by jersey or name, e.g. 15_luca_brenner.jpg" accept="image/*" multiple disabled={busy} hideList onFiles={(files) => setItems(files.map((file) => ({ file, personId: matchPhoto(file.name, people), state: "ready" })))} />
     {items.length ? <div className="space-y-2 border-t border-border pt-3">
       <p className="text-sm font-semibold">Review matches · {items.filter((item) => item.personId).length} matched / {items.filter((item) => !item.personId).length} unmatched</p>
       {items.map((item, i) => <div key={`${item.file.name}-${i}`} className="grid items-center gap-2 border-b border-border py-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-        <span className="truncate text-sm" title={item.file.name}>{item.file.name}</span>
+        <span className="flex min-w-0 items-center gap-1 text-sm"><span className="truncate" title={item.file.name}>{item.file.name}</span><span className="shrink-0 text-xs text-muted-foreground">{Math.max(1, Math.round(item.file.size / 1024))} KB</span>{item.state !== "saved" ? <button type="button" disabled={busy} aria-label={`Remove ${item.file.name}`} className="shrink-0 rounded p-1 hover:bg-secondary" onClick={() => setItems((all) => all.filter((_, j) => j !== i))}><X className="h-3.5 w-3.5" /></button> : null}</span>
         <SelectInput aria-label={`Assign ${item.file.name}`} value={item.personId} disabled={busy || item.state === "saved"} onChange={(e) => update(i, { personId: e.target.value, state: "ready" })}>
           <option value="">Unmatched — skip</option>
           {people.map((person) => <option key={person.id} value={person.id}>{person.jersey ? `#${person.jersey} · ` : ""}{person.name}</option>)}

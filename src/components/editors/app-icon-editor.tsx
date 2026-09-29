@@ -1,3 +1,4 @@
+import { DropZone } from "@/components/drop-zone";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,9 +63,8 @@ export function AppIconEditor({ teamId, teamName, value, logoUrl, color, onSaved
           </span>
           <span className="w-full truncate text-center text-[10px] text-foreground">{teamName}</span>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <input ref={input} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => { void pick(e.target.files?.[0]); e.target.value = ""; }} />
-          <Btn type="button" variant="outline" onClick={() => input.current?.click()}>{icon ? "Replace icon" : "Upload icon"}</Btn>
+        <div className="flex min-w-0 flex-1 flex-wrap items-start gap-2">
+          <DropZone label={icon ? "Replace icon" : "Upload icon"} hint="Square PNG, JPG or WebP, at least 512x512" accept="image/png,image/jpeg,image/webp" onFiles={(files) => void pick(files[0])} />
           {icon ? <Btn type="button" variant="ghost" onClick={() => void save(null)}>Remove</Btn> : null}
         </div>
       </div>
