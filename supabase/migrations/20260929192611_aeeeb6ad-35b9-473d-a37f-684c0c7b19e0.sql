@@ -1,0 +1,4 @@
+CREATE OR REPLACE FUNCTION private.protect_team_payment_insert() RETURNS trigger LANGUAGE plpgsql SET search_path = public AS $$ BEGIN IF auth.role() IS DISTINCT FROM 'service_role' AND NEW.payment_exempt THEN RAISE EXCEPTION 'Payment exemption cannot be set'; END IF; RETURN NEW; END; $$;
+CREATE TRIGGER protect_team_payment_insert BEFORE INSERT ON public.teams FOR EACH ROW EXECUTE FUNCTION private.protect_team_payment_insert();
+CREATE OR REPLACE FUNCTION private.protect_season_payment_insert() RETURNS trigger LANGUAGE plpgsql SET search_path = public AS $$ BEGIN IF auth.role() IS DISTINCT FROM 'service_role' AND NEW.paid_at IS NOT NULL THEN RAISE EXCEPTION 'Payment status cannot be set'; END IF; RETURN NEW; END; $$;
+CREATE TRIGGER protect_season_payment_insert BEFORE INSERT ON public.seasons FOR EACH ROW EXECUTE FUNCTION private.protect_season_payment_insert();

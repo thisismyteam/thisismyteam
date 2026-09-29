@@ -15,6 +15,8 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as StartRouteImport } from './routes/start'
 import { Route as AdminTeamIdRouteImport } from './routes/admin.$teamId'
+import { Route as CheckoutTeamIdRouteImport } from './routes/checkout.$teamId'
+import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,6 +48,16 @@ const AdminTeamIdRoute = AdminTeamIdRouteImport.update({
   path: '/admin/$teamId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CheckoutTeamIdRoute = CheckoutTeamIdRouteImport.update({
+  id: '/checkout/$teamId',
+  path: '/checkout/$teamId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
+  id: '/api/public/stripe-webhook',
+  path: '/api/public/stripe-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +66,8 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/start': typeof StartRoute
   '/admin/$teamId': typeof AdminTeamIdRoute
+  '/checkout/$teamId': typeof CheckoutTeamIdRoute
+  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +76,8 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/start': typeof StartRoute
   '/admin/$teamId': typeof AdminTeamIdRoute
+  '/checkout/$teamId': typeof CheckoutTeamIdRoute
+  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,13 +87,30 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/start': typeof StartRoute
   '/admin/$teamId': typeof AdminTeamIdRoute
+  '/checkout/$teamId': typeof CheckoutTeamIdRoute
+  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/$slug' | '/auth' | '/dashboard' | '/start' | '/admin/$teamId'
+    | '/'
+    | '/$slug'
+    | '/auth'
+    | '/dashboard'
+    | '/start'
+    | '/admin/$teamId'
+    | '/checkout/$teamId'
+    | '/api/public/stripe-webhook'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$slug' | '/auth' | '/dashboard' | '/start' | '/admin/$teamId'
+  to:
+    | '/'
+    | '/$slug'
+    | '/auth'
+    | '/dashboard'
+    | '/start'
+    | '/admin/$teamId'
+    | '/checkout/$teamId'
+    | '/api/public/stripe-webhook'
   id:
     | '__root__'
     | '/'
@@ -86,6 +119,8 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/start'
     | '/admin/$teamId'
+    | '/checkout/$teamId'
+    | '/api/public/stripe-webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -95,6 +130,8 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   StartRoute: typeof StartRoute
   AdminTeamIdRoute: typeof AdminTeamIdRoute
+  CheckoutTeamIdRoute: typeof CheckoutTeamIdRoute
+  ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -141,6 +178,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTeamIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/checkout/$teamId': {
+      id: '/checkout/$teamId'
+      path: '/checkout/$teamId'
+      fullPath: '/checkout/$teamId'
+      preLoaderRoute: typeof CheckoutTeamIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/stripe-webhook': {
+      id: '/api/public/stripe-webhook'
+      path: '/api/public/stripe-webhook'
+      fullPath: '/api/public/stripe-webhook'
+      preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -151,6 +202,8 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   StartRoute: StartRoute,
   AdminTeamIdRoute: AdminTeamIdRoute,
+  CheckoutTeamIdRoute: CheckoutTeamIdRoute,
+  ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

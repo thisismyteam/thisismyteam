@@ -42,7 +42,11 @@ function Dashboard() {
         )
         .eq("user_id", user!.id);
       if (error) throw error;
-      return data ?? [];
+      const rows = data ?? [];
+      const ids = rows.filter((r) => r.role === "owner").map((r) => (r.teams as { id: string } | null)?.id).filter((id): id is string => !!id);
+      const { data: seasons, error: seasonError } = ids.length ? await supabase.from("seasons").select("team_id, label, paid_at").in("team_id", ids).eq("is_current", true) : { data: [], error: null };
+      if (seasonError) throw seasonError;
+      return rows.map((row) => ({ ...row, billing: seasons?.find((s) => s.team_id === (row.teams as { id: string } | null)?.id) ?? null }));
     },
   });
 
@@ -94,6 +98,7 @@ function Dashboard() {
                     {team.sports?.name} · {team.level} · {row.role} ·{" "}
                     {team.published ? "Live" : "Draft"}
                   </p>
+                  {row.role === "owner" && row.billing?.paid_at ? <p className="mt-1 text-sm font-semibold text-primary">Paid for {row.billing.label} season</p> : null}
                 </div>
                 <div className="flex gap-2">
                   <Link to="/$slug" params={{ slug: team.slug }}>

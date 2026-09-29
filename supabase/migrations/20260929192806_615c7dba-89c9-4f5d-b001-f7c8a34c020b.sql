@@ -1,0 +1,1 @@
+CREATE OR REPLACE FUNCTION private.protect_team_payment_insert() RETURNS trigger LANGUAGE plpgsql SET search_path = public AS $$ BEGIN IF auth.role() IS DISTINCT FROM 'service_role' AND (NEW.payment_exempt OR NEW.published OR NEW.published_at IS NOT NULL) THEN RAISE EXCEPTION 'New teams must start unpublished'; END IF; RETURN NEW; END; $$;

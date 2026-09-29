@@ -2,3 +2,6 @@
 - [x] Team management: video, highlights, leaders, links, followers, contributors
 - [x] Public team page: media, cards, leaders, follow, links, schedule labels
 - [x] Verify flows and preserve landing video
+- [x] Stripe test payment records and server-enforced publication gate
+- [x] Owner-only checkout, signed webhook, review cancellation, verified success screen and QR
+- [ ] Verify checkout, mobile layout, webhook safety and legacy published teams (live test payment waits for Stripe credentials)
