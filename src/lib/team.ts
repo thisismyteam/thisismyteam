@@ -112,7 +112,7 @@ export function computeStreak(games: Game[]) {
     .sort(byDateAsc)
     .reverse();
   if (played.length === 0) return null;
-  const latest = gameResult(played[0]);
+  const latest = gameResult(played[0]!);
   let count = 0;
   for (const g of played) {
     if (gameResult(g) !== latest) break;
@@ -178,14 +178,16 @@ export function parseRosterPaste(text: string, defaultLevel = ""): RosterDraftRo
 
       let jersey = "";
       let rest = parts;
-      if (parts.length && /^#?\d{1,3}$/.test(parts[0])) {
-        jersey = parts[0].replace("#", "");
+      const firstPart = parts[0] ?? "";
+      if (firstPart && /^#?\d{1,3}$/.test(firstPart)) {
+        jersey = firstPart.replace("#", "");
         rest = parts.slice(1);
       }
 
       // Single-token fallback: "12 Jordan Miles 11 Varsity"
-      if (rest.length === 1 && rest[0].includes(" ")) {
-        rest = rest[0].split(/\s+/);
+      const only = rest[0];
+      if (rest.length === 1 && only && only.includes(" ")) {
+        rest = only.split(/\s+/);
       }
 
       const [first = "", last = "", grade = "", level = ""] = rest;
