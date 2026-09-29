@@ -25,7 +25,7 @@ export function SiteHeader({ slim = false, extra }: { slim?: boolean; extra?: Re
           <span className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded bg-primary text-base font-black text-primary-foreground">
             T
           </span>
-          <span className={`display-xl hidden leading-none ${slim ? "text-sm sm:text-base min-[420px]:block" : "text-lg sm:text-xl min-[370px]:block"}`}>This Is My Team</span>
+          <span className={`display-xl hidden leading-none ${slim ? "text-sm sm:text-base min-[340px]:block" : "text-lg sm:text-xl min-[370px]:block"}`}>This Is My Team</span>
         </Link>
 
         <nav className="flex items-center gap-2 sm:gap-3">
