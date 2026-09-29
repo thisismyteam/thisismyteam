@@ -19,15 +19,15 @@ export const Route = createFileRoute('/api/public/stripe-webhook')({
       const session = event.data.object
       if (session.mode !== 'payment' || session.payment_status !== 'paid' ||
         session.amount_total !== 29900 || session.currency !== 'usd' ||
-        !session.metadata?.team_id || !session.metadata.season_id ||
-        session.client_reference_id !== session.metadata.team_id || !session.id.startsWith('cs_test_')) {
+        !session.metadata?.['team_id'] || !session.metadata['season_id'] ||
+        session.client_reference_id !== session.metadata['team_id'] || !session.id.startsWith('cs_test_')) {
         console.error('Stripe checkout did not match a paid test season', event.id)
         return new Response('Checkout mismatch', { status: 400 })
       }
       const { supabaseAdmin } = await import('@/integrations/supabase/client.server')
       const { data, error } = await supabaseAdmin.rpc('finalize_team_checkout', {
-        _session_id: session.id, _team_id: session.metadata.team_id,
-        _season_id: session.metadata.season_id, _amount_cents: 29900, _currency: 'usd',
+        _session_id: session.id, _team_id: session.metadata['team_id'],
+        _season_id: session.metadata['season_id'], _amount_cents: 29900, _currency: 'usd',
       })
       if (error || data !== true) {
         console.error('Failed to finalize Stripe checkout', event.id, error)
