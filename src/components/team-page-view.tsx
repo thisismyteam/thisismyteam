@@ -7,7 +7,8 @@ import { Volume2, VolumeX, Heart, ArrowUpRight, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Btn, TextInput } from "@/components/ui-kit";
-import { TeamPortrait, HighlightPlayer } from "@/components/team-portrait";
+import { TeamPortrait } from "@/components/team-portrait";
+import { ClipViewer } from "@/components/clip-viewer";
 import type { getPublicTeam } from "@/lib/public-team.functions";
 import { onColor } from "@/lib/colors";
 import {
@@ -49,6 +50,7 @@ export function TeamPageView({ data, bottomBar }: { data: TeamPageData; bottomBa
   const [player, setPlayer] = useState<Player | null>(null);
   const [coach, setCoach] = useState<Coach | null>(null);
   const [clip, setClip] = useState<(typeof highlights)[number] | null>(null);
+  const playable = highlights.filter((h) => h.video_url);
   const [email, setEmail] = useState("");
   const [following, setFollowing] = useState(false);
   const [followed, setFollowed] = useState(false);
@@ -296,7 +298,7 @@ export function TeamPageView({ data, bottomBar }: { data: TeamPageData; bottomBa
       ) : null}
       {coach ? <div role="presentation" className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 sm:items-center sm:p-6" onClick={() => setCoach(null)}><div role="dialog" aria-modal="true" aria-label={coach.name} className="max-h-[90vh] w-full max-w-md overflow-y-auto border border-border bg-surface" onClick={(e) => e.stopPropagation()}>{coach.photo_url ? <img src={coach.photo_url} alt={coach.name} className="aspect-[4/3] w-full object-cover" /> : <div className="flex aspect-[4/3] items-center justify-center bg-team font-condensed text-7xl text-team-foreground">{coach.name.split(/\s+/).map((part) => part[0]).slice(0, 2).join("")}</div>}<div className="p-6"><p className="eyebrow text-team-secondary">{coach.title ?? "Coach"}</p><h3 className="display-xl mt-1 text-3xl">{coach.name}</h3>{coach.bio ? <p className="mt-4 text-sm">{coach.bio}</p> : null}<Btn type="button" variant="outline" className="mt-6 w-full" onClick={() => setCoach(null)}>Close</Btn></div></div></div> : null}
       {bottomBar}
-      {clip?.video_url ? <div role="presentation" className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 p-3 sm:p-8" onClick={() => setClip(null)}><div role="dialog" aria-modal="true" aria-label={clip.title} className="w-full max-w-5xl bg-surface" onClick={(e) => e.stopPropagation()}><div className="flex items-center justify-between gap-4 p-4"><h3 className="font-condensed text-2xl font-bold uppercase">{clip.title}</h3><Btn variant="ghost" type="button" aria-label="Close clip" onClick={() => setClip(null)}><X className="h-5 w-5" /></Btn></div><HighlightPlayer url={clip.video_url} title={clip.title} /></div></div> : null}
+      {clip ? <ClipViewer clips={playable} index={Math.max(0, playable.findIndex((h) => h.id === clip.id))} onIndex={(n) => setClip(playable[n] ?? null)} onClose={() => setClip(null)} /> : null}
     </div>
   );
 }

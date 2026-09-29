@@ -23,12 +23,12 @@ export function TeamPortrait({ name, image, fallback, detail, caption, onClick }
   );
 }
 
-export function HighlightPlayer({ url, title }: { url: string; title: string }) {
+export function HighlightPlayer({ url, title, autoPlay, onEnded }: { url: string; title: string; autoPlay?: boolean; onEnded?: () => void }) {
   const source = videoSource(url);
   if (!source) return <p className="text-sm text-muted-foreground">This clip cannot be played here.</p>;
   return source.kind === "hudl" ? <HudlPlayer url={url} title={title} /> : source.kind === "embed" ? (
     <iframe title={title} src={source.url} className="aspect-video w-full bg-background" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />
-  ) : <video src={source.url} controls playsInline preload="metadata" className="aspect-video w-full bg-background object-contain" />;
+  ) : <video key={source.url} src={source.url} controls playsInline autoPlay={autoPlay} onEnded={onEnded} preload="metadata" className="aspect-video w-full bg-background object-contain" />;
 }
 
 function HudlPlayer({ url, title }: { url: string; title: string }) {
