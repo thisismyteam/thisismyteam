@@ -1,4 +1,4 @@
-import { createFileRoute, notFound, Link } from "@tanstack/react-router";
+import { createFileRoute, notFound, redirect, Link } from "@tanstack/react-router";
 import { getPublicTeam } from "@/lib/public-team.functions";
 import { TeamPageView } from "@/components/team-page-view";
 
