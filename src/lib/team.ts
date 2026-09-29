@@ -34,9 +34,10 @@ export type Team = {
   hero_video_url: string | null;
   tagline: string | null;
   published: boolean;
+  payment_exempt: boolean;
 };
 
-export type Season = { id: string; team_id: string; label: string; year: number; is_current: boolean };
+export type Season = { id: string; team_id: string; label: string; year: number; is_current: boolean; paid_at: string | null };
 
 export type Player = {
   id: string;

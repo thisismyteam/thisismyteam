@@ -9,7 +9,7 @@ export const Route = createFileRoute('/api/public/stripe-webhook')({
       if (!key || !secret || !signature) return new Response('Webhook unavailable', { status: 503 })
       const { default: Stripe } = await import('stripe')
       const stripe = new Stripe(key, { httpClient: Stripe.createFetchHttpClient() })
-      let event: Stripe.Event
+      let event
       try {
         event = await stripe.webhooks.constructEventAsync(await request.text(), signature, secret, undefined, Stripe.createSubtleCryptoProvider())
       } catch {
