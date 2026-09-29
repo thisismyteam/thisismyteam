@@ -1,4 +1,4 @@
-import { createFileRoute, notFound, Link } from "@tanstack/react-router";
+import { createFileRoute, notFound, redirect, Link } from "@tanstack/react-router";
 import { getPublicTeam } from "@/lib/public-team.functions";
 import { TeamPageView } from "@/components/team-page-view";
 
@@ -6,6 +6,9 @@ export const Route = createFileRoute("/$slug")({
   loader: async ({ params }) => {
     const data = await getPublicTeam({ data: { slug: params.slug } });
     if (!data) throw notFound();
+    if (params.slug !== data.team.slug) {
+      throw redirect({ to: "/$slug", params: { slug: data.team.slug }, replace: true });
+    }
     return data;
   },
   head: ({ loaderData, params }) => {

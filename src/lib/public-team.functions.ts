@@ -40,7 +40,7 @@ export const getPublicTeam = createServerFn({ method: "GET" })
     const { data: team } = await supabase
       .from("teams")
       .select("*, sports(*), organizations(name, org_type)")
-      .eq("slug", data.slug)
+      .ilike("slug", data.slug)
       .eq("published", true)
       .maybeSingle();
 
