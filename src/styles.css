@@ -45,6 +45,8 @@
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
   --color-surface: var(--surface);
+  --color-hero-light: oklch(0.98 0.005 90);
+  --color-hero-scrim: oklch(0.12 0.01 260 / 0.6);
   --color-surface-2: var(--surface-2);
   --color-signal: var(--signal);
   --color-signal-foreground: var(--signal-foreground);
