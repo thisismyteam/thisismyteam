@@ -25,4 +25,3 @@ export function HighlightPlayer({ url, title }: { url: string; title: string }) 
     <iframe title={title} src={source.url} className="aspect-video w-full bg-background" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />
   ) : <video src={source.url} controls playsInline preload="metadata" className="aspect-video w-full bg-background object-contain" />;
 }
-import { videoSource } from "@/lib/media";
