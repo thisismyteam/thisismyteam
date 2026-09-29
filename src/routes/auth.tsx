@@ -32,6 +32,8 @@ export const Route = createFileRoute("/auth")({
         property: "og:description",
         content: "Sign in to build and manage your team's home on This Is My Team.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AuthPage,

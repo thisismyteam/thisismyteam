@@ -46,7 +46,7 @@ export const getPublicTeam = createServerFn({ method: "GET" })
       supabase.from("highlight_players").select("highlight_id,player_id").eq("season_id", season.id),
       supabase.from("player_game_stats").select("id,game_id,player_id,leader_rank,stats").eq("season_id", season.id).not("leader_rank", "is", null),
       supabase.from("get_involved_links").select("id,label,url,description,sort_order").eq("season_id", season.id).order("sort_order"),
-      supabase.rpc("team_follower_count", { p_team_id: team.id }),
+      supabase.rpc("team_follower_count", { _team_id: team.id }),
     ]);
 
     return {
