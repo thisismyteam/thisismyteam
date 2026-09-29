@@ -39,13 +39,9 @@ function CheckoutResult() {
     refetchInterval: (query) => result === 'success' && !query.state.data?.season?.paid_at ? 3000 : false,
   })
   const live = !!billing.data?.season?.paid_at && !!billing.data?.team.published
-  const url = `${origin}/${billing.data?.team.slug ?? ''}`
+  const url = `https://thisismyteam.app/${billing.data?.team.slug ?? ''}`
   return <div className="min-h-screen bg-background"><SiteHeader /><main className="mx-auto max-w-2xl px-4 py-14 sm:px-6">
-    {billing.isError ? <p className="text-destructive">Could not verify your team. Please sign in as its Owner.</p> : result === 'cancel' ? <>
-      <p className="eyebrow text-primary">Checkout cancelled</p><h1 className="display-xl mt-3 text-4xl">Your team is still a draft.</h1>
-      <p className="mt-4 text-muted-foreground">No payment was completed. Your team details are saved; return to review whenever you're ready.</p>
-      <Link to="/start" search={{ teamId, checkout: 'cancel' }} className="mt-7 inline-block"><Btn>Back to review</Btn></Link>
-    </> : live ? <>
+    {billing.isError ? <p className="text-destructive">Could not verify your team. Please sign in as its Owner.</p> : !billing.data ? <p className="text-muted-foreground">Checking your team…</p> : live ? <>
       <p className="eyebrow text-primary">Game on</p><h1 className="display-xl mt-3 text-5xl">You're live!</h1>
       <p className="mt-4 text-muted-foreground">Your team page is published and ready to share.</p>
       <div className="mt-8 border-y border-border py-6"><a className="break-all text-lg font-semibold text-primary" href={url}>{url}</a>
@@ -53,6 +49,10 @@ function CheckoutResult() {
           <Link to="/$slug" params={{ slug: billing.data?.team.slug ?? '' }}><Btn variant="outline">View page <ExternalLink className="ml-2 h-4 w-4" /></Btn></Link></div></div>
       {origin ? <div className="mt-8 inline-block bg-surface p-4"><QRCodeSVG value={url} size={180} bgColor="transparent" fgColor="currentColor" aria-label="QR code for your team page" /></div> : null}
       <div className="mt-8"><Link to="/admin/$teamId" params={{ teamId }}><Btn variant="outline">Manage team</Btn></Link></div>
+    </> : result === 'cancel' ? <>
+      <p className="eyebrow text-primary">Checkout cancelled</p><h1 className="display-xl mt-3 text-4xl">Your team is still a draft.</h1>
+      <p className="mt-4 text-muted-foreground">No payment was completed. Your team details are saved; return to review whenever you're ready.</p>
+      <Link to="/start" search={{ teamId, checkout: 'cancel' }} className="mt-7 inline-block"><Btn>Back to review</Btn></Link>
     </> : <><p className="eyebrow text-primary">Payment received</p><h1 className="display-xl mt-3 text-4xl">Confirming your team</h1>
       <p className="mt-4 text-muted-foreground">We're waiting for Stripe to confirm the payment. Your team stays unpublished until it does. This page updates automatically.</p>
       <div className="mt-7 flex gap-2"><Btn variant="outline" onClick={() => billing.refetch()}>Check again</Btn><Link to="/dashboard"><Btn variant="ghost">My teams</Btn></Link></div>
