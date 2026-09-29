@@ -1,6 +1,10 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { Volume2, VolumeX, Play, Heart, Film, Trophy, HandHeart } from "lucide-react";
+import { Volume2, VolumeX, Heart, ArrowUpRight, X } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { Btn, TextInput } from "@/components/ui-kit";
+import { TeamPortrait, HighlightPlayer } from "@/components/team-portrait";
 import { getPublicTeam } from "@/lib/public-team.functions";
 import { onColor } from "@/lib/colors";
 import {
@@ -8,6 +12,7 @@ import {
   computeStreak,
   formatGameDate,
   gameResult,
+  lastGame,
   nextGame,
   type Coach,
   type Team,
@@ -77,7 +82,19 @@ function TeamPage() {
   const record = computeRecord(games);
   const streak = computeStreak(games);
   const upcoming = nextGame(games);
+  const latest = lastGame(games);
+  const highlights = data.highlights ?? [];
+  const tags = data.highlightPlayers ?? [];
+  const leaders = (data.leaders ?? []).filter((l) => l.game_id === latest?.id).sort((a, b) => (a.leader_rank ?? 9) - (b.leader_rank ?? 9)).slice(0, 3);
+  const involved = data.involved ?? [];
+  const statColumns = (team as unknown as { sports?: { player_stats?: { key: string; label: string }[] } }).sports?.player_stats ?? [];
   const [player, setPlayer] = useState<Player | null>(null);
+  const [coach, setCoach] = useState<Coach | null>(null);
+  const [clip, setClip] = useState<(typeof highlights)[number] | null>(null);
+  const [email, setEmail] = useState("");
+  const [following, setFollowing] = useState(false);
+  const [followed, setFollowed] = useState(false);
+  const [followerCount, setFollowerCount] = useState(data.followerCount ?? 0);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const [muted, setMuted] = useState(true);
@@ -107,7 +124,7 @@ function TeamPage() {
                 playsInline
                 className="absolute inset-0 h-full w-full object-cover"
               />
-              <button
+              <Btn variant="ghost" type="button"
                 onClick={() => {
                   const v = videoRef.current;
                   if (!v) return;
@@ -115,11 +132,11 @@ function TeamPage() {
                   setMuted(v.muted);
                   void v.play();
                 }}
-                className="absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur"
+                className="absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-background/70 text-foreground backdrop-blur"
                 aria-label={muted ? "Turn sound on" : "Turn sound off"}
               >
                 {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-              </button>
+              </Btn>
             </>
           ) : (
             <div
@@ -180,6 +197,7 @@ function TeamPage() {
       </section>
 
       <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+        {leaders.length ? <Section title="Last game leaders"><p className="eyebrow mb-4 text-team-secondary">{latest ? `${latest.home_away === "away" ? "AT" : "VS"} ${latest.opponent} · ${formatGameDate(latest.game_date)}` : ""}</p><div className="grid gap-3 sm:grid-cols-3">{leaders.map((leader, index) => { const p = players.find((p) => p.id === leader.player_id); const stats = leader.stats && typeof leader.stats === "object" && !Array.isArray(leader.stats) ? leader.stats as Record<string, unknown> : {}; return <div key={leader.id} className="flex min-h-40 items-center gap-4 border-l-4 border-team bg-surface p-5"><span className="stat-number text-5xl text-team-secondary">0{index + 1}</span><div><p className="font-condensed text-2xl font-bold uppercase">{p?.first_name} {p?.last_name}</p><p className="mt-2 font-condensed text-lg font-semibold uppercase text-muted-foreground">{statColumns.filter((column) => stats[column.key] != null).map((column) => `${column.label} ${stats[column.key]}`).join(" · ")}</p></div></div>; })}</div></Section> : null}
         {/* Schedule */}
         <Section title="Schedule">
           <div className="flex flex-col gap-2">
@@ -195,7 +213,7 @@ function TeamPage() {
                   </span>
                   <span className="min-w-0 flex-1 truncate font-semibold">
                     <span className="mr-1.5 text-xs uppercase text-muted-foreground">
-                      {g.home_away === "home" ? "vs" : g.home_away === "away" ? "at" : "vs"}
+                      {g.home_away === "away" ? "AT" : "VS"}
                     </span>
                     {g.opponent}
                   </span>
@@ -233,37 +251,7 @@ function TeamPage() {
         <Section title="Roster">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {players.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => setPlayer(p)}
-                className="panel group overflow-hidden text-left transition-transform hover:-translate-y-0.5"
-              >
-                <div
-                  className="flex aspect-[3/4] items-center justify-center overflow-hidden"
-                  style={{ backgroundColor: primary }}
-                >
-                  {p.photo_url ? (
-                    <img
-                      src={p.photo_url}
-                      alt={`${p.first_name} ${p.last_name}`}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <span className="stat-number text-5xl" style={{ color: onColor(primary) }}>
-                      {p.jersey_number ?? "—"}
-                    </span>
-                  )}
-                </div>
-                <div className="p-3">
-                  <p className="truncate text-sm font-bold uppercase">
-                    {p.first_name} {p.last_name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    #{p.jersey_number ?? "—"} · {p.position ?? "—"}
-                    {p.grade ? ` · ${p.grade}` : ""}
-                  </p>
-                </div>
-              </button>
+              <TeamPortrait key={p.id} name={`${p.first_name} ${p.last_name}`} image={p.photo_url} fallback={p.jersey_number ?? "—"} detail={`#${p.jersey_number ?? "—"} · ${p.position ?? "—"}`} caption={p.grade ?? undefined} onClick={() => setPlayer(p)} />
             ))}
             {players.length === 0 ? <Empty>Roster coming soon.</Empty> : null}
           </div>
@@ -272,55 +260,17 @@ function TeamPage() {
         {/* Coaches */}
         {coaches.length ? (
           <Section title="Coaches">
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
               {coaches.map((c) => (
-                <div key={c.id} className="panel flex items-center gap-3 p-3">
-                  <span
-                    className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full"
-                    style={{ backgroundColor: secondary }}
-                  >
-                    {c.photo_url ? (
-                      <img src={c.photo_url} alt="" className="h-full w-full object-cover" />
-                    ) : (
-                      <span className="text-sm font-bold" style={{ color: onColor(secondary) }}>
-                        {c.name.slice(0, 1)}
-                      </span>
-                    )}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-bold uppercase">{c.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">{c.title}</p>
-                  </div>
-                </div>
+                <TeamPortrait key={c.id} name={c.name} image={c.photo_url} fallback={c.name.split(/\s+/).map((part) => part[0]).slice(0, 2).join("").toUpperCase()} detail={c.title ?? "Coach"} caption="Coaching staff" onClick={() => setCoach(c)} />
               ))}
             </div>
           </Section>
         ) : null}
 
-        {/* Reserved sections */}
-        <div className="mt-14 grid gap-4 sm:grid-cols-2">
-          <Placeholder icon={<Film className="h-5 w-5" />} title="Highlights">
-            Video highlights from every game land here.
-          </Placeholder>
-          <Placeholder icon={<Trophy className="h-5 w-5" />} title="Last game leaders">
-            Top performers from the most recent game.
-          </Placeholder>
-          <Placeholder icon={<HandHeart className="h-5 w-5" />} title="Get involved">
-            Volunteer, sponsor and booster links.
-          </Placeholder>
-          <div className="panel flex flex-col items-start gap-3 p-6">
-            <p className="eyebrow text-muted-foreground">Fans</p>
-            <h3 className="text-2xl">Follow this team</h3>
-            <button
-              disabled
-              className="inline-flex items-center gap-2 rounded-md px-5 py-2.5 text-sm font-bold uppercase tracking-wide opacity-70"
-              style={{ backgroundColor: primary, color: onColor(primary) }}
-            >
-              <Heart className="h-4 w-4" /> Follow
-            </button>
-            <p className="text-xs text-muted-foreground">Following opens up soon.</p>
-          </div>
-        </div>
+        <Section title="Highlights"><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{highlights.map((highlight) => <Btn key={highlight.id} type="button" variant="ghost" className="block h-auto w-full overflow-hidden rounded-sm border border-border bg-surface p-0 text-left" onClick={() => setClip(highlight)}><div className="flex aspect-video items-center justify-center bg-team"><span className="flex h-16 w-16 items-center justify-center rounded-full bg-background/80 text-foreground"><span className="ml-1 text-2xl">▶</span></span></div><div className="p-4"><p className="eyebrow text-team-secondary">{highlight.featured ? "Featured · " : ""}{games.find((g) => g.id === highlight.game_id)?.opponent ?? "Team clip"}</p><h3 className="mt-1 font-condensed text-2xl font-bold uppercase">{highlight.title}</h3></div></Btn>)}</div>{highlights.length === 0 ? <Empty>No highlights yet.</Empty> : null}</Section>
+        <Section title="Get involved"><div className="grid gap-3 sm:grid-cols-2">{involved.map((link) => <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer" className="flex min-h-24 items-center justify-between gap-4 border-l-4 border-team bg-surface p-5 transition-colors hover:bg-surface-2"><div><p className="font-condensed text-2xl font-bold uppercase">{link.label}</p>{link.description ? <p className="mt-1 text-sm text-muted-foreground">{link.description}</p> : null}</div><ArrowUpRight className="h-6 w-6 shrink-0 text-team-secondary" /></a>)}</div>{involved.length === 0 ? <Empty>No links yet.</Empty> : null}</Section>
+        <Section title="Follow this team"><div className="border-l-4 border-team bg-surface p-5 sm:p-7"><p className="font-condensed text-3xl font-bold uppercase">{followerCount.toLocaleString()} followers</p><p className="mt-2 text-sm text-muted-foreground">Stay connected with {team.name}.</p><form className="mt-5 flex max-w-lg flex-col gap-3 sm:flex-row" onSubmit={async (e) => { e.preventDefault(); if (following || followed) return; setFollowing(true); const { data: success, error } = await supabase.rpc("follow_team_by_email", { p_team_id: team.id, p_email: email.trim() }); setFollowing(false); if (error) toast.error(error.message); else if (success) { setFollowed(true); setFollowerCount((n) => n + 1); toast.success("You're following this team"); } else toast.error("This email already follows the team, or too many attempts were made. Try again later."); }}><TextInput type="email" aria-label="Email address" required placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)} disabled={followed} /><Btn type="submit" disabled={following || followed} className="shrink-0"><Heart className="mr-2 h-4 w-4" />{followed ? "Following" : following ? "Saving…" : "Follow"}</Btn></form></div></Section>
       </main>
 
       <footer className="border-t border-border py-8 text-center">
@@ -331,7 +281,7 @@ function TeamPage() {
 
       {player ? (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-0 sm:items-center sm:p-6"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 p-0 sm:items-center sm:p-6"
           onClick={() => setPlayer(null)}
         >
           <div
@@ -363,16 +313,19 @@ function TeamPage() {
                   .join(" · ") || team.name}
               </p>
               {player.bio ? <p className="mt-4 text-sm">{player.bio}</p> : null}
-              <button
+              {highlights.filter((h) => tags.some((tag) => tag.highlight_id === h.id && tag.player_id === player.id)).length ? <div className="mt-5"><p className="eyebrow mb-2 text-team-secondary">Highlights</p><div className="flex flex-wrap gap-2">{highlights.filter((h) => tags.some((tag) => tag.highlight_id === h.id && tag.player_id === player.id)).map((h) => <Btn key={h.id} variant="outline" type="button" onClick={() => { setPlayer(null); setClip(h); }}>{h.title}</Btn>)}</div></div> : null}
+              <Btn variant="outline"
                 onClick={() => setPlayer(null)}
                 className="mt-6 h-10 w-full rounded-md border border-input text-sm font-semibold hover:bg-secondary"
               >
                 Close
-              </button>
+              </Btn>
             </div>
           </div>
         </div>
       ) : null}
+      {coach ? <div role="presentation" className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 sm:items-center sm:p-6" onClick={() => setCoach(null)}><div role="dialog" aria-modal="true" aria-label={coach.name} className="max-h-[90vh] w-full max-w-md overflow-y-auto border border-border bg-surface" onClick={(e) => e.stopPropagation()}>{coach.photo_url ? <img src={coach.photo_url} alt={coach.name} className="aspect-[4/3] w-full object-cover" /> : <div className="flex aspect-[4/3] items-center justify-center bg-team font-condensed text-7xl text-team-foreground">{coach.name.split(/\s+/).map((part) => part[0]).slice(0, 2).join("")}</div>}<div className="p-6"><p className="eyebrow text-team-secondary">{coach.title ?? "Coach"}</p><h3 className="display-xl mt-1 text-3xl">{coach.name}</h3>{coach.bio ? <p className="mt-4 text-sm">{coach.bio}</p> : null}<Btn type="button" variant="outline" className="mt-6 w-full" onClick={() => setCoach(null)}>Close</Btn></div></div></div> : null}
+      {clip?.video_url ? <div role="presentation" className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 p-3 sm:p-8" onClick={() => setClip(null)}><div role="dialog" aria-modal="true" aria-label={clip.title} className="w-full max-w-5xl bg-surface" onClick={(e) => e.stopPropagation()}><div className="flex items-center justify-between gap-4 p-4"><h3 className="font-condensed text-2xl font-bold uppercase">{clip.title}</h3><Btn variant="ghost" type="button" aria-label="Close clip" onClick={() => setClip(null)}><X className="h-5 w-5" /></Btn></div><HighlightPlayer url={clip.video_url} title={clip.title} /></div></div> : null}
     </div>
   );
 }
@@ -402,25 +355,3 @@ function Empty({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Placeholder({
-  icon,
-  title,
-  children,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="panel flex flex-col gap-2 p-6">
-      <span className="flex h-9 w-9 items-center justify-center rounded-md bg-secondary text-muted-foreground">
-        {icon}
-      </span>
-      <h3 className="text-2xl">{title}</h3>
-      <p className="text-sm text-muted-foreground">{children}</p>
-      <span className="eyebrow mt-2 inline-flex items-center gap-1 text-muted-foreground">
-        <Play className="h-3 w-3" /> Coming next
-      </span>
-    </div>
-  );
-}
