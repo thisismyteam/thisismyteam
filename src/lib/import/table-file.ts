@@ -1,4 +1,4 @@
-export const IMPORT_ACCEPT = ".csv,.xlsx,.docx,.pdf,image/*";
+export const IMPORT_ACCEPT = ".txt,.csv,.xlsx,.docx,.pdf,image/*";
 export const MAX_IMPORT_BYTES = 10 * 1024 * 1024;
 
 function cellToString(c: unknown): string {
@@ -15,7 +15,8 @@ export type FileContent =
 export async function readImportFile(file: File): Promise<FileContent> {
   if (file.size > MAX_IMPORT_BYTES) throw new Error("File must be 10MB or smaller.");
   const name = file.name.toLowerCase();
-  if (name.endsWith(".csv") || name.endsWith(".txt") || file.type === "text/csv") {
+  if (name.endsWith(".txt")) return { kind: "text", text: await file.text() };
+  if (name.endsWith(".csv") || file.type === "text/csv") {
     const Papa = (await import("papaparse")).default;
     const res = Papa.parse<string[]>(await file.text(), { skipEmptyLines: true });
     return { kind: "table", rows: res.data.map((r) => r.map(cellToString)) };

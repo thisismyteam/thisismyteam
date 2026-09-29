@@ -16,6 +16,7 @@
 - Only a verified Stripe test webhook may mark a season paid and publish a new team; the database guards payment fields and grandfathered publication, so browser updates cannot bypass checkout.
 - Keep owner-only Checkout creation in an authenticated server function and signed raw-body Stripe events in the public webhook route; redirects only show status, never finalize payment.
 - Keep team display names editable while suggesting organization short name plus mascot; this preserves existing team names and avoids a destructive rename.
-- Resolve Hudl short URLs and inspect embed availability server-side, then show a direct watch fallback by default; cross-origin player failures cannot be read by the parent page.
+- Resolve Hudl links server-side, play available embeds inline with direct-watch fallback; parent pages cannot reliably detect cross-origin failures.
 - Scope admin save feedback to each edited row or section, so asynchronous writes do not imply unrelated fields were saved.
-- Roster/schedule imports parse CSV/Excel in the browser and send only Word/PDF/images to an authenticated, team-member-checked AI server function; all imports land in an editable preview so nothing saves without confirmation.
+- Parse TXT/CSV/Excel imports in browser; send only Word/PDF/images to team-checked AI; review before saving.
+- Match photo-day filenames locally and review before saving to the existing private team media bucket; avoid unreviewed assignments.

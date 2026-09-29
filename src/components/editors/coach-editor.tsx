@@ -7,11 +7,13 @@ import { Btn, Field, TextInput } from "@/components/ui-kit";
 import { uploadMedia } from "@/lib/storage";
 import type { Coach } from "@/lib/team";
 import { SaveStatus, useRowSaveStatus, useSaveStatus } from "@/components/save-status";
+import { PhotoDay } from "@/components/editors/photo-day";
 
 export function CoachEditor({ teamId, seasonId }: { teamId: string; seasonId: string }) {
   const qc = useQueryClient();
   const [name, setName] = useState("");
   const [title, setTitle] = useState("");
+  const [showForm, setShowForm] = useState(true);
   const rowSave = useRowSaveStatus();
   const [addState, setAddState] = useSaveStatus();
 
@@ -43,6 +45,7 @@ export function CoachEditor({ teamId, seasonId }: { teamId: string; seasonId: st
      onMutate: () => setAddState("saving"),
      onSuccess: () => {
        setAddState("saved");
+        setShowForm(false);
       setName("");
       setTitle("");
       qc.invalidateQueries({ queryKey: ["coaches", seasonId] });
@@ -80,7 +83,7 @@ export function CoachEditor({ teamId, seasonId }: { teamId: string; seasonId: st
 
   return (
     <div className="flex flex-col gap-4">
-      <form
+      {showForm ? <form
         className="grid gap-3 sm:grid-cols-12"
         onSubmit={(e) => {
           e.preventDefault();
@@ -97,13 +100,12 @@ export function CoachEditor({ teamId, seasonId }: { teamId: string; seasonId: st
             onChange={(e) => setTitle(e.target.value)}
           />
         </Field>
-        <div className="flex items-end sm:col-span-2">
-          <Btn type="submit" className="w-full" disabled={addCoach.isPending}>
-            <Plus className="h-4 w-4" />
-          </Btn>
+         <div className="flex items-end sm:col-span-3">
+          <Btn type="submit" className="w-full" disabled={addCoach.isPending}>Save coach</Btn>
         </div>
-      </form>
-       <div className="-mt-2"><SaveStatus state={addState} /></div>
+      </form> : null}
+       <div className="flex items-center gap-3"><SaveStatus state={addState} />{!showForm ? <Btn type="button" variant="outline" onClick={() => { setShowForm(true); setAddState("idle"); }}><Plus className="mr-1 h-4 w-4" /> Add another coach</Btn> : null}</div>
+       <PhotoDay teamId={teamId} table="coaches" people={(coachesQuery.data ?? []).map((c) => ({ id: c.id, name: c.name }))} onSaved={() => void qc.invalidateQueries({ queryKey: ["coaches", seasonId] })} />
 
       {(coachesQuery.data ?? []).map((c) => (
         <div key={c.id} className="panel grid items-end gap-3 p-3 sm:grid-cols-12 sm:p-4">
