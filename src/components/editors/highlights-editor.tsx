@@ -40,7 +40,7 @@ export function HighlightsEditor({ teamId, seasonId }: { teamId: string; seasonI
     for (let i = 0; i < queue.length; i++) {
       const clip = queue[i];
       if (!clip) continue;
-      if (clip.state === "saved" || clip.progress >= 90) continue;
+      if (clip.state === "saved") continue;
       try {
         validateVideo(clip.file);
         setQueue((items) => items.map((item, j) => j === i ? { ...item, state: "uploading", progress: 1 } : item));
@@ -50,11 +50,11 @@ export function HighlightsEditor({ teamId, seasonId }: { teamId: string; seasonI
         if (error) throw error;
         if (draft.playerIds.length) {
           const { error: tagError } = await supabase.from("highlight_players").insert(draft.playerIds.map((player_id) => ({ highlight_id: saved.id, player_id, team_id: teamId, season_id: seasonId })));
-          if (tagError) throw tagError;
+          if (tagError) toast.error(`Saved ${clip.title}, but player tags could not be added.`);
         }
         setQueue((items) => items.map((item, j) => j === i ? { ...item, progress: 100, state: "saved" } : item));
       } catch (e) {
-        setQueue((items) => items.map((item, j) => j === i ? { ...item, state: "error", progress: item.progress >= 90 ? 100 : 0 } : item));
+        setQueue((items) => items.map((item, j) => j === i ? { ...item, state: "error", progress: 0 } : item));
         toast.error(e instanceof Error ? e.message : `Could not save ${clip.file.name}`);
       }
     }
@@ -99,7 +99,7 @@ export function HighlightsEditor({ teamId, seasonId }: { teamId: string; seasonI
       <Field label="Game (optional)"><SelectInput value={draft.game_id} onChange={(e) => setDraft({ ...draft, game_id: e.target.value })}><option value="">No game</option>{query.data?.games.map((g) => <option key={g.id} value={g.id}>{g.opponent} · {g.game_date ?? "TBD"}</option>)}</SelectInput></Field>
       <Field label="YouTube or Hudl link"><TextInput type="url" value={draft.video_url.startsWith("http") ? draft.video_url : ""} placeholder="https://www.youtube.com/watch?v=..." onChange={(e) => setDraft({ ...draft, video_url: e.target.value })} /></Field>
        <Field label="Or upload clips" hint="MP4 or MOV · 100MB max each"><input type="file" multiple accept=".mp4,.mov,video/mp4,video/quicktime" className="block w-full pt-2 text-sm" disabled={busy} onChange={(e) => { const files = Array.from(e.target.files ?? []); const first = files[0]; if (files.length === 1 && first) void handleFile(first); else if (files.length > 1) { try { files.forEach(validateVideo); setQueue(files.map((file) => ({ file, title: file.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " "), progress: 0, state: "ready" }))); } catch (err) { toast.error(err instanceof Error ? err.message : "Invalid video"); } } e.target.value = ""; }} /></Field>
-       {queue.length ? <div className="space-y-3 sm:col-span-2"><p className="eyebrow">Review clips</p>{queue.map((clip, i) => <div key={`${clip.file.name}-${i}`} className="border-b border-border pb-3"><Field label={clip.file.name}><TextInput value={clip.title} disabled={busy || clip.state === "saved"} onChange={(e) => setQueue((items) => items.map((item, j) => j === i ? { ...item, title: e.target.value } : item))} /></Field><progress value={clip.state === "uploading" ? undefined : clip.progress} max={100} className="mt-2 h-2 w-full accent-primary" aria-label={`${clip.file.name} upload progress`} /><span className="text-xs text-muted-foreground">{clip.state === "saved" ? "Saved ✓" : clip.state === "error" ? clip.progress >= 90 ? "Uploaded, but not saved" : "Not saved — retry" : clip.state === "uploading" ? "Uploading..." : "Ready"}</span></div>)}<div className="flex gap-2"><Btn type="button" disabled={busy || queue.every((item) => item.state === "saved" || item.progress >= 90)} onClick={() => void saveQueue()}>{busy ? "Uploading..." : `Save ${queue.filter((item) => item.state !== "saved" && item.progress < 90).length} clips`}</Btn><Btn type="button" variant="outline" disabled={busy} onClick={() => setQueue([])}>Clear</Btn></div></div> : null}
+       {queue.length ? <div className="space-y-3 sm:col-span-2"><p className="eyebrow">Review clips</p>{queue.map((clip, i) => <div key={`${clip.file.name}-${i}`} className="border-b border-border pb-3"><Field label={clip.file.name}><TextInput value={clip.title} disabled={busy || clip.state === "saved"} onChange={(e) => setQueue((items) => items.map((item, j) => j === i ? { ...item, title: e.target.value } : item))} /></Field><progress value={clip.state === "uploading" ? undefined : clip.progress} max={100} className="mt-2 h-2 w-full accent-primary" aria-label={`${clip.file.name} upload progress`} /><span className="text-xs text-muted-foreground">{clip.state === "saved" ? "Saved ✓" : clip.state === "error" ? "Not saved — retry" : clip.state === "uploading" ? "Uploading..." : "Ready"}</span></div>)}<div className="flex gap-2"><Btn type="button" disabled={busy || queue.every((item) => item.state === "saved")} onClick={() => void saveQueue()}>{busy ? "Uploading..." : `Save ${queue.filter((item) => item.state !== "saved").length} clips`}</Btn><Btn type="button" variant="outline" disabled={busy} onClick={() => setQueue([])}>Clear</Btn></div></div> : null}
       {busy && progress > 0 ? <progress value={progress} max={100} className="w-full accent-primary" aria-label="Clip upload progress" /> : null}
       <div className="sm:col-span-2">
         <p className="eyebrow mb-2 text-muted-foreground">Tagged players</p>
