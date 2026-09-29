@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Btn, Field, SelectInput, TextInput } from "@/components/ui-kit";
 import { uploadMedia } from "@/lib/storage";
 import { emptyRosterRow, parseRosterPaste, type Player, type RosterDraftRow } from "@/lib/team";
+import { SaveStatus, useRowSaveStatus, useSaveStatus } from "@/components/save-status";
 
 export function RosterEditor({
   teamId,
@@ -22,6 +23,8 @@ export function RosterEditor({
   const [tab, setTab] = useState<"paste" | "one">("paste");
   const [pasteText, setPasteText] = useState("");
   const [draft, setDraft] = useState<RosterDraftRow>(() => emptyRosterRow(defaultLevel));
+  const rowSave = useRowSaveStatus();
+  const [addState, setAddState] = useSaveStatus();
 
   const playersQuery = useQuery({
     queryKey: ["players", seasonId],
@@ -54,13 +57,15 @@ export function RosterEditor({
       );
       if (error) throw error;
     },
-    onSuccess: () => {
+     onMutate: () => setAddState("saving"),
+     onSuccess: () => {
+       setAddState("saved");
       qc.invalidateQueries({ queryKey: ["players", seasonId] });
       setPasteText("");
       setDraft(emptyRosterRow(defaultLevel));
       toast.success("Roster updated");
     },
-    onError: (e: Error) => toast.error(e.message),
+     onError: (e: Error) => { setAddState("error"); toast.error(e.message); },
   });
 
   const updatePlayer = useMutation({
@@ -68,8 +73,9 @@ export function RosterEditor({
       const { error } = await supabase.from("players").update(patch).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["players", seasonId] }),
-    onError: (e: Error) => toast.error(e.message),
+     onMutate: ({ id }) => rowSave.set(id, "saving"),
+     onSuccess: (_data, { id }) => { rowSave.set(id, "saved"); qc.invalidateQueries({ queryKey: ["players", seasonId] }); },
+     onError: (e: Error, { id }) => { rowSave.set(id, "error"); toast.error(e.message); },
   });
 
   const removePlayer = useMutation({
@@ -128,7 +134,7 @@ export function RosterEditor({
               Positions can be set below once added.
             </p>
           ) : null}
-          <div>
+           <div className="flex items-center gap-3">
             <Btn
               type="button"
               disabled={parsedPreview.length === 0 || addMany.isPending}
@@ -136,6 +142,7 @@ export function RosterEditor({
             >
               Add {parsedPreview.length || ""} players
             </Btn>
+             <SaveStatus state={addState} />
           </div>
         </div>
       ) : (
@@ -191,11 +198,12 @@ export function RosterEditor({
               ))}
             </SelectInput>
           </Field>
-          <div className="flex items-end sm:col-span-1">
+           <div className="flex items-end sm:col-span-1">
             <Btn type="submit" className="w-full" disabled={addMany.isPending}>
               <Plus className="h-4 w-4" />
             </Btn>
           </div>
+           <div className="flex items-end pb-3"><SaveStatus state={addState} /></div>
         </form>
       )}
 
@@ -211,37 +219,31 @@ export function RosterEditor({
             <Field label="#" className="sm:col-span-1">
               <TextInput
                 defaultValue={p.jersey_number ?? ""}
-                onBlur={(e) =>
-                  updatePlayer.mutate({ id: p.id, patch: { jersey_number: e.target.value } })
-                }
+                 onBlur={(e) => { if (e.target.value !== (p.jersey_number ?? "")) updatePlayer.mutate({ id: p.id, patch: { jersey_number: e.target.value } }); }}
               />
             </Field>
             <Field label="First" className="sm:col-span-2">
               <TextInput
                 defaultValue={p.first_name}
-                onBlur={(e) =>
-                  updatePlayer.mutate({ id: p.id, patch: { first_name: e.target.value } })
-                }
+                 onBlur={(e) => { if (e.target.value !== p.first_name) updatePlayer.mutate({ id: p.id, patch: { first_name: e.target.value } }); }}
               />
             </Field>
             <Field label="Last" className="sm:col-span-2">
               <TextInput
                 defaultValue={p.last_name}
-                onBlur={(e) =>
-                  updatePlayer.mutate({ id: p.id, patch: { last_name: e.target.value } })
-                }
+                 onBlur={(e) => { if (e.target.value !== p.last_name) updatePlayer.mutate({ id: p.id, patch: { last_name: e.target.value } }); }}
               />
             </Field>
             <Field label="Grade" className="sm:col-span-1">
               <TextInput
                 defaultValue={p.grade ?? ""}
-                onBlur={(e) => updatePlayer.mutate({ id: p.id, patch: { grade: e.target.value } })}
+                 onBlur={(e) => { if (e.target.value !== (p.grade ?? "")) updatePlayer.mutate({ id: p.id, patch: { grade: e.target.value } }); }}
               />
             </Field>
             <Field label="Level" className="sm:col-span-2">
               <TextInput
                 defaultValue={p.level ?? ""}
-                onBlur={(e) => updatePlayer.mutate({ id: p.id, patch: { level: e.target.value } })}
+                 onBlur={(e) => { if (e.target.value !== (p.level ?? "")) updatePlayer.mutate({ id: p.id, patch: { level: e.target.value } }); }}
               />
             </Field>
             <Field label="Position" className="sm:col-span-2">
@@ -281,6 +283,7 @@ export function RosterEditor({
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
+             <div className="col-span-2 sm:col-span-12"><SaveStatus state={rowSave.state(p.id)} /></div>
           </div>
         ))}
         {playersQuery.data?.length === 0 ? (

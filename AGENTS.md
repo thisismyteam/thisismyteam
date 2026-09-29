@@ -15,3 +15,6 @@
 - Claim contributor invites by verified sign-in email through the database wrapper; this prevents an unverified account from taking another person's team access.
 - Only a verified Stripe test webhook may mark a season paid and publish a new team; the database guards payment fields and grandfathered publication, so browser updates cannot bypass checkout.
 - Keep owner-only Checkout creation in an authenticated server function and signed raw-body Stripe events in the public webhook route; redirects only show status, never finalize payment.
+- Keep team display names editable while suggesting organization short name plus mascot; this preserves existing team names and avoids a destructive rename.
+- Resolve Hudl short URLs and inspect embed availability server-side, then show a direct watch fallback by default; cross-origin player failures cannot be read by the parent page.
+- Scope admin save feedback to each edited row or section, so asynchronous writes do not imply unrelated fields were saved.

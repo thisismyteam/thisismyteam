@@ -17,6 +17,7 @@ import { CoachEditor } from "@/components/editors/coach-editor";
 import { ScheduleEditor } from "@/components/editors/schedule-editor";
 import { isReservedSlug, slugify } from "@/lib/slug";
 import { ORG_TYPES, type Sport } from "@/lib/team";
+import { existingMascot } from "@/lib/team-naming";
 import { startTeamCheckout } from "@/lib/billing.functions";
 
 export const Route = createFileRoute("/start")({
@@ -79,7 +80,7 @@ function Wizard() {
       if (!active) return;
       setTeamId(team.id); setSeasonId(season.id); setOrgId(team.organization_id);
       setOrgName(team.organizations?.name ?? ""); setOrgType(team.organizations?.org_type ?? "school"); setSportId(team.sport_id);
-      setBasics({ name: team.name, mascot: team.mascot ?? "", level: team.level, seasonLabel: season.label,
+       setBasics({ name: team.name, mascot: existingMascot(team.name, team.organizations?.name ?? "", team.mascot), level: team.level, seasonLabel: season.label,
         slug: team.slug, slugTouched: true, logo_url: team.logo_url, primary_color: team.primary_color,
         secondary_color: team.secondary_color, tagline: team.tagline ?? "" });
       setStep(5);
@@ -335,7 +336,7 @@ function Wizard() {
             }}
           >
             <SectionTitle eyebrow="Step 2" title="Team basics" />
-            <TeamBasicsForm value={basics} onChange={setBasics} uploadPrefix={teamId ?? user?.id ?? "new"} />
+             <TeamBasicsForm value={basics} onChange={setBasics} organizationName={orgName} uploadPrefix={teamId ?? user?.id ?? "new"} />
             <div className="flex gap-2">
               <Btn type="button" variant="outline" onClick={() => setStep(1)}>
                 Back

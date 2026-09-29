@@ -5,6 +5,7 @@ import { uploadMedia } from "@/lib/storage";
 import { extractPalette, isValidHex, onColor } from "@/lib/colors";
 import { slugify } from "@/lib/slug";
 import { TEAM_LEVELS } from "@/lib/team";
+import { suggestedTeamName } from "@/lib/team-naming";
 
 export type TeamBasics = {
   name: string;
@@ -39,11 +40,13 @@ export function TeamBasicsForm({
   onChange,
   uploadPrefix,
   showSeason = true,
+  organizationName = "",
 }: {
   value: TeamBasics;
   onChange: (next: TeamBasics) => void;
   uploadPrefix: string;
   showSeason?: boolean;
+  organizationName?: string;
 }) {
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -52,10 +55,11 @@ export function TeamBasicsForm({
     onChange({ ...value, [key]: v });
   }
 
-  function setName(name: string) {
+  function setName(name: string, mascot = value.mascot) {
     onChange({
       ...value,
       name,
+      mascot,
       slug: value.slugTouched ? value.slug : slugify(name),
     });
   }
@@ -76,19 +80,25 @@ export function TeamBasicsForm({
 
   return (
     <div className="grid gap-4 sm:grid-cols-12">
-      <Field label="Team name" className="sm:col-span-6">
+      <Field label="Mascot / nickname" className="sm:col-span-6">
+        <TextInput
+          required
+          value={value.mascot}
+          placeholder="Normans"
+          onChange={(e) => {
+            const next = e.target.value;
+            const previousSuggestion = suggestedTeamName(organizationName, value.mascot);
+            if (!value.name || value.name === previousSuggestion) setName(suggestedTeamName(organizationName, next), next);
+            else set("mascot", next);
+          }}
+        />
+      </Field>
+      <Field label="Display name" className="sm:col-span-6">
         <TextInput
           required
           value={value.name}
-          placeholder="Northside Wildcats"
+          placeholder={suggestedTeamName(organizationName, value.mascot) || "Beverly Hills Normans"}
           onChange={(e) => setName(e.target.value)}
-        />
-      </Field>
-      <Field label="Mascot" className="sm:col-span-6">
-        <TextInput
-          value={value.mascot}
-          placeholder="Wildcats"
-          onChange={(e) => set("mascot", e.target.value)}
         />
       </Field>
 

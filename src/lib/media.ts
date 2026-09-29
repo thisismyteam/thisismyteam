@@ -6,10 +6,10 @@ export function validateVideo(file: File) {
     throw new Error("Choose an MP4 or MOV video.");
 }
 
-export function videoSource(url: string): { kind: "file" | "embed"; url: string } | null {
+export function videoSource(url: string): { kind: "file" | "embed" | "hudl"; url: string } | null {
   try {
     const parsed = new URL(url);
-    if (parsed.protocol !== "https:") return null;
+    if (parsed.protocol !== "https:" && !(parsed.protocol === "http:" && /^(www\.)?hudl\.com$/i.test(parsed.hostname))) return null;
     const host = parsed.hostname.toLowerCase();
     if (host === "youtu.be" || host === "www.youtube.com" || host === "youtube.com" || host === "m.youtube.com") {
       const id = host === "youtu.be" ? parsed.pathname.slice(1) : parsed.pathname.startsWith("/shorts/") ? parsed.pathname.split("/")[2] : parsed.searchParams.get("v");
@@ -17,10 +17,9 @@ export function videoSource(url: string): { kind: "file" | "embed"; url: string 
       return { kind: "embed", url: `https://www.youtube-nocookie.com/embed/${id}` };
     }
     if (host === "www.hudl.com" || host === "hudl.com") {
-      // Hudl's share pages expose a player at /embed/video/<id>; never embed arbitrary URLs.
-      const id = parsed.pathname.match(/^\/(?:video\/\d+\/|embed\/video\/)([a-zA-Z0-9_-]+)/)?.[1];
-      if (!id) return null;
-      return { kind: "embed", url: `https://www.hudl.com/embed/video/${id}` };
+      const path = parsed.pathname;
+      if (!/^\/(?:v\/[A-Za-z0-9_-]+|(?:embed\/)?video\/\d+\/\d+\/[A-Za-z0-9_-]+)\/?$/.test(path)) return null;
+      return { kind: "hudl", url: `https://www.hudl.com${path.replace(/^\/embed/, "")}` };
     }
     // Direct files are only supported from our team's private media bucket.
     if (parsed.pathname.includes("/storage/v1/object/sign/team-videos/") && /\.(mp4|mov|webm)$/i.test(parsed.pathname))

@@ -7,6 +7,7 @@ import { Btn, Field, SelectInput, TextInput } from "@/components/ui-kit";
 import type { Game } from "@/lib/team";
 import type { StatColumn } from "@/lib/team";
 import { LeadersEditor } from "@/components/editors/leaders-editor";
+import { SaveStatus, useRowSaveStatus, useSaveStatus } from "@/components/save-status";
 
 const blank = {
   game_date: "",
@@ -21,6 +22,8 @@ const blank = {
 export function ScheduleEditor({ teamId, seasonId, statColumns = [] }: { teamId: string; seasonId: string; statColumns?: StatColumn[] }) {
   const qc = useQueryClient();
   const [draft, setDraft] = useState({ ...blank });
+  const rowSave = useRowSaveStatus();
+  const [addState, setAddState] = useSaveStatus();
 
   const gamesQuery = useQuery({
     queryKey: ["games", seasonId],
@@ -52,11 +55,13 @@ export function ScheduleEditor({ teamId, seasonId, statColumns = [] }: { teamId:
       });
       if (error) throw error;
     },
-    onSuccess: () => {
+     onMutate: () => setAddState("saving"),
+     onSuccess: () => {
+       setAddState("saved");
       setDraft({ ...blank });
       qc.invalidateQueries({ queryKey: ["games", seasonId] });
     },
-    onError: (e: Error) => toast.error(e.message),
+     onError: (e: Error) => { setAddState("error"); toast.error(e.message); },
   });
 
   type GamePatch = Partial<{
@@ -75,8 +80,9 @@ export function ScheduleEditor({ teamId, seasonId, statColumns = [] }: { teamId:
       const { error } = await supabase.from("games").update(patch).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["games", seasonId] }),
-    onError: (e: Error) => toast.error(e.message),
+     onMutate: ({ id }) => rowSave.set(id, "saving"),
+     onSuccess: (_data, { id }) => { rowSave.set(id, "saved"); qc.invalidateQueries({ queryKey: ["games", seasonId] }); },
+     onError: (e: Error, { id }) => { rowSave.set(id, "error"); toast.error(e.message); },
   });
 
   const removeGame = useMutation({
@@ -164,6 +170,7 @@ export function ScheduleEditor({ teamId, seasonId, statColumns = [] }: { teamId:
           </Btn>
         </div>
       </form>
+       <div className="-mt-3"><SaveStatus state={addState} /></div>
 
       <div className="flex flex-col gap-2">
         <p className="eyebrow text-muted-foreground">
@@ -176,23 +183,19 @@ export function ScheduleEditor({ teamId, seasonId, statColumns = [] }: { teamId:
               <TextInput
                 type="date"
                 defaultValue={g.game_date ?? ""}
-                onBlur={(e) =>
-                  updateGame.mutate({ id: g.id, patch: { game_date: e.target.value || null } })
-                }
+                 onBlur={(e) => { if (e.target.value !== (g.game_date ?? "")) updateGame.mutate({ id: g.id, patch: { game_date: e.target.value || null } }); }}
               />
             </Field>
             <Field label="Time" className="sm:col-span-2">
               <TextInput
                 defaultValue={g.game_time ?? ""}
-                onBlur={(e) =>
-                  updateGame.mutate({ id: g.id, patch: { game_time: e.target.value || null } })
-                }
+                 onBlur={(e) => { if (e.target.value !== (g.game_time ?? "")) updateGame.mutate({ id: g.id, patch: { game_time: e.target.value || null } }); }}
               />
             </Field>
             <Field label="Opponent" className="sm:col-span-2">
               <TextInput
                 defaultValue={g.opponent}
-                onBlur={(e) => updateGame.mutate({ id: g.id, patch: { opponent: e.target.value } })}
+                 onBlur={(e) => { if (e.target.value !== g.opponent) updateGame.mutate({ id: g.id, patch: { opponent: e.target.value } }); }}
               />
             </Field>
             <Field label="H/A" className="sm:col-span-1">
@@ -208,30 +211,21 @@ export function ScheduleEditor({ teamId, seasonId, statColumns = [] }: { teamId:
             <Field label="Location" className="sm:col-span-2">
               <TextInput
                 defaultValue={g.location ?? ""}
-                onBlur={(e) =>
-                  updateGame.mutate({ id: g.id, patch: { location: e.target.value || null } })
-                }
+                 onBlur={(e) => { if (e.target.value !== (g.location ?? "")) updateGame.mutate({ id: g.id, patch: { location: e.target.value || null } }); }}
               />
             </Field>
             <Field label="Us" className="sm:col-span-1">
               <TextInput
                 type="number"
                 defaultValue={g.team_score ?? ""}
-                onBlur={(e) =>
-                  updateGame.mutate({ id: g.id, patch: scorePatch(g, "team_score", e.target.value) })
-                }
+                 onBlur={(e) => { if (e.target.value !== String(g.team_score ?? "")) updateGame.mutate({ id: g.id, patch: scorePatch(g, "team_score", e.target.value) }); }}
               />
             </Field>
             <Field label="Them" className="sm:col-span-1">
               <TextInput
                 type="number"
                 defaultValue={g.opponent_score ?? ""}
-                onBlur={(e) =>
-                  updateGame.mutate({
-                    id: g.id,
-                    patch: scorePatch(g, "opponent_score", e.target.value),
-                  })
-                }
+                 onBlur={(e) => { if (e.target.value !== String(g.opponent_score ?? "")) updateGame.mutate({ id: g.id, patch: scorePatch(g, "opponent_score", e.target.value) }); }}
               />
             </Field>
             <div className="flex justify-end sm:col-span-1">
@@ -245,6 +239,7 @@ export function ScheduleEditor({ teamId, seasonId, statColumns = [] }: { teamId:
               </button>
             </div>
           </div>
+           <div className="px-4 pb-2"><SaveStatus state={rowSave.state(g.id)} /></div>
           {g.status === "final" ? <LeadersEditor teamId={teamId} seasonId={seasonId} game={g} columns={statColumns} /> : null}
           </div>
         ))}

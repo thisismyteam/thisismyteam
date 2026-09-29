@@ -18,6 +18,8 @@ import { FollowersEditor } from "@/components/editors/followers-editor";
 import { MembersEditor } from "@/components/editors/members-editor";
 import { isReservedSlug, slugify } from "@/lib/slug";
 import type { Season, Sport, Team } from "@/lib/team";
+import { existingMascot } from "@/lib/team-naming";
+import { SaveStatus, useSaveStatus } from "@/components/save-status";
 
 export const Route = createFileRoute("/admin/$teamId")({
   ssr: false,
@@ -50,6 +52,7 @@ function AdminPage() {
   const [tab, setTab] = useState<(typeof TABS)[number]>("Team info");
   const [basics, setBasics] = useState<TeamBasics | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saveState, setSaveState] = useSaveStatus();
   const [heroVideo, setHeroVideo] = useState<string | null | undefined>();
 
   useEffect(() => {
@@ -62,7 +65,7 @@ function AdminPage() {
     queryFn: async () => {
       const { data: team, error } = await supabase
         .from("teams")
-        .select("*")
+         .select("*, organizations(name)")
         .eq("id", teamId)
         .single();
       if (error) throw error;
@@ -86,7 +89,7 @@ function AdminPage() {
       if (!membership) throw new Error("You do not have access to manage this team.");
 
       return {
-        team: team as unknown as Team,
+         team: team as unknown as Team & { organizations: { name: string } | null },
         season: (season ?? null) as unknown as Season | null,
         sport: sport as unknown as Sport,
         isOwner: membership.role === "owner",
@@ -99,7 +102,7 @@ function AdminPage() {
     const { team, season } = teamQuery.data;
     setBasics({
       name: team.name,
-      mascot: team.mascot ?? "",
+       mascot: existingMascot(team.name, team.organizations?.name ?? "", team.mascot),
       level: team.level,
       seasonLabel: season?.label ?? "2026",
       slug: team.slug,
@@ -114,6 +117,7 @@ function AdminPage() {
   async function saveBasics() {
     if (!basics || !teamQuery.data) return;
     setSaving(true);
+    setSaveState("saving");
     try {
       let slug = basics.slug || slugify(basics.name);
       if (isReservedSlug(slug)) slug = `${slug}-team`;
@@ -127,6 +131,7 @@ function AdminPage() {
         if (taken) {
           toast.error("That team address is already taken. Try another.");
           setSaving(false);
+           setSaveState("error");
           return;
         }
       }
@@ -159,8 +164,10 @@ function AdminPage() {
       setBasics({ ...basics, slug });
       qc.invalidateQueries({ queryKey: ["admin-team", teamId] });
       toast.success("Saved");
+       setSaveState("saved");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not save.");
+       setSaveState("error");
     } finally {
       setSaving(false);
     }
@@ -257,11 +264,12 @@ function AdminPage() {
             }}
           >
             <SectionTitle title="Team info" />
-            <TeamBasicsForm value={basics} onChange={setBasics} uploadPrefix={team.id} />
-            <div>
+             <TeamBasicsForm value={basics} onChange={(next) => { setBasics(next); setSaveState("idle"); }} organizationName={team.organizations?.name ?? ""} uploadPrefix={team.id} />
+             <div className="flex items-center gap-3">
               <Btn type="submit" disabled={saving}>
                 Save changes
               </Btn>
+               <SaveStatus state={saveState} />
             </div>
           </form>
         ) : null}
