@@ -1,0 +1,202 @@
+import { useRef, useState } from "react";
+import { toast } from "sonner";
+import { Field, SelectInput, TextInput } from "@/components/ui-kit";
+import { uploadMedia } from "@/lib/storage";
+import { extractPalette, isValidHex, onColor } from "@/lib/colors";
+import { slugify } from "@/lib/slug";
+import { TEAM_LEVELS } from "@/lib/team";
+
+export type TeamBasics = {
+  name: string;
+  mascot: string;
+  level: string;
+  seasonLabel: string;
+  slug: string;
+  slugTouched: boolean;
+  logo_url: string | null;
+  primary_color: string;
+  secondary_color: string;
+  tagline: string;
+};
+
+export function emptyTeamBasics(): TeamBasics {
+  return {
+    name: "",
+    mascot: "",
+    level: "Varsity",
+    seasonLabel: "2026",
+    slug: "",
+    slugTouched: false,
+    logo_url: null,
+    primary_color: "#0B0B0F",
+    secondary_color: "#E9E9EF",
+    tagline: "",
+  };
+}
+
+export function TeamBasicsForm({
+  value,
+  onChange,
+  uploadPrefix,
+  showSeason = true,
+}: {
+  value: TeamBasics;
+  onChange: (next: TeamBasics) => void;
+  uploadPrefix: string;
+  showSeason?: boolean;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  function set<K extends keyof TeamBasics>(key: K, v: TeamBasics[K]) {
+    onChange({ ...value, [key]: v });
+  }
+
+  function setName(name: string) {
+    onChange({
+      ...value,
+      name,
+      slug: value.slugTouched ? value.slug : slugify(name),
+    });
+  }
+
+  async function handleLogo(file: File) {
+    setUploading(true);
+    try {
+      const [primary, secondary] = await extractPalette(file);
+      const url = await uploadMedia("team-logos", file, uploadPrefix);
+      onChange({ ...value, logo_url: url, primary_color: primary, secondary_color: secondary });
+      toast.success("Logo added — colors pulled from it");
+    } catch {
+      toast.error("That logo didn't upload.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className="grid gap-4 sm:grid-cols-12">
+      <Field label="Team name" className="sm:col-span-6">
+        <TextInput
+          required
+          value={value.name}
+          placeholder="Northside Wildcats"
+          onChange={(e) => setName(e.target.value)}
+        />
+      </Field>
+      <Field label="Mascot" className="sm:col-span-6">
+        <TextInput
+          value={value.mascot}
+          placeholder="Wildcats"
+          onChange={(e) => set("mascot", e.target.value)}
+        />
+      </Field>
+
+      <Field label="Level" className="sm:col-span-4">
+        <SelectInput value={value.level} onChange={(e) => set("level", e.target.value)}>
+          {TEAM_LEVELS.map((l) => (
+            <option key={l} value={l}>
+              {l}
+            </option>
+          ))}
+        </SelectInput>
+      </Field>
+      {showSeason ? (
+        <Field label="Season" className="sm:col-span-4">
+          <TextInput
+            value={value.seasonLabel}
+            onChange={(e) => set("seasonLabel", e.target.value)}
+          />
+        </Field>
+      ) : null}
+      <Field
+        label="Team address"
+        hint={`thisismyteam.app/${value.slug || "your-team"}`}
+        className={showSeason ? "sm:col-span-4" : "sm:col-span-8"}
+      >
+        <TextInput
+          value={value.slug}
+          onChange={(e) => onChange({ ...value, slug: slugify(e.target.value), slugTouched: true })}
+        />
+      </Field>
+
+      <Field label="Tagline" className="sm:col-span-12">
+        <TextInput
+          value={value.tagline}
+          placeholder="One town. One team."
+          onChange={(e) => set("tagline", e.target.value)}
+        />
+      </Field>
+
+      {/* Logo + colours */}
+      <div className="sm:col-span-6">
+        <p className="eyebrow mb-1.5 text-muted-foreground">Logo</p>
+        <div className="panel flex items-center gap-4 p-4">
+          <span
+            className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full"
+            style={{ backgroundColor: value.primary_color }}
+          >
+            {value.logo_url ? (
+              <img src={value.logo_url} alt="Team logo" className="h-full w-full object-cover" />
+            ) : (
+              <span
+                className="display-xl text-2xl"
+                style={{ color: onColor(value.primary_color) }}
+              >
+                {value.name.slice(0, 1) || "T"}
+              </span>
+            )}
+          </span>
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+              className="h-10 rounded-md border border-input px-4 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
+            >
+              {uploading ? "Uploading…" : value.logo_url ? "Replace logo" : "Upload logo"}
+            </button>
+            <span className="text-xs text-muted-foreground">
+              We pull your two main colors from it.
+            </span>
+          </div>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleLogo(f);
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="sm:col-span-6">
+        <p className="eyebrow mb-1.5 text-muted-foreground">Team colors</p>
+        <div className="panel flex flex-col gap-3 p-4">
+          {(["primary_color", "secondary_color"] as const).map((key) => (
+            <div key={key} className="flex items-center gap-3">
+              <input
+                type="color"
+                aria-label={key === "primary_color" ? "Primary color" : "Secondary color"}
+                value={isValidHex(value[key]) ? value[key] : "#000000"}
+                onChange={(e) => set(key, e.target.value)}
+                className="h-10 w-12 cursor-pointer rounded border border-input bg-transparent"
+              />
+              <TextInput
+                value={value[key]}
+                onChange={(e) => set(key, e.target.value)}
+                className="font-mono"
+              />
+              <span className="eyebrow w-20 text-muted-foreground">
+                {key === "primary_color" ? "Primary" : "Second"}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
