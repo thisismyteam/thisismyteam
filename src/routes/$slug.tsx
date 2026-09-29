@@ -1,27 +1,6 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
-import { useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/lib/auth";
-import { SiteHeader } from "@/components/site-header";
-import { Volume2, VolumeX, Heart, ArrowUpRight, X } from "lucide-react";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { Btn, TextInput } from "@/components/ui-kit";
-import { TeamPortrait, HighlightPlayer } from "@/components/team-portrait";
 import { getPublicTeam } from "@/lib/public-team.functions";
-import { onColor } from "@/lib/colors";
-import {
-  computeRecord,
-  computeStreak,
-  formatGameDate,
-  gameResult,
-  lastGame,
-  nextGame,
-  type Coach,
-  type Team,
-  type Game,
-  type Player,
-} from "@/lib/team";
+import { TeamPageView } from "@/components/team-page-view";
 
 export const Route = createFileRoute("/$slug")({
   loader: async ({ params }) => {
