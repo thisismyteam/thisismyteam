@@ -16,6 +16,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as StartRouteImport } from './routes/start'
 import { Route as AdminTeamIdRouteImport } from './routes/admin.$teamId'
 import { Route as CheckoutTeamIdRouteImport } from './routes/checkout.$teamId'
+import { Route as PreviewTeamIdRouteImport } from './routes/preview.$teamId'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 
 const IndexRoute = IndexRouteImport.update({
@@ -53,6 +54,11 @@ const CheckoutTeamIdRoute = CheckoutTeamIdRouteImport.update({
   path: '/checkout/$teamId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PreviewTeamIdRoute = PreviewTeamIdRouteImport.update({
+  id: '/preview/$teamId',
+  path: '/preview/$teamId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
   id: '/api/public/stripe-webhook',
   path: '/api/public/stripe-webhook',
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/start': typeof StartRoute
   '/admin/$teamId': typeof AdminTeamIdRoute
   '/checkout/$teamId': typeof CheckoutTeamIdRoute
+  '/preview/$teamId': typeof PreviewTeamIdRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/start': typeof StartRoute
   '/admin/$teamId': typeof AdminTeamIdRoute
   '/checkout/$teamId': typeof CheckoutTeamIdRoute
+  '/preview/$teamId': typeof PreviewTeamIdRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRoutesById {
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/start': typeof StartRoute
   '/admin/$teamId': typeof AdminTeamIdRoute
   '/checkout/$teamId': typeof CheckoutTeamIdRoute
+  '/preview/$teamId': typeof PreviewTeamIdRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRouteTypes {
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/start'
     | '/admin/$teamId'
     | '/checkout/$teamId'
+    | '/preview/$teamId'
     | '/api/public/stripe-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/start'
     | '/admin/$teamId'
     | '/checkout/$teamId'
+    | '/preview/$teamId'
     | '/api/public/stripe-webhook'
   id:
     | '__root__'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/start'
     | '/admin/$teamId'
     | '/checkout/$teamId'
+    | '/preview/$teamId'
     | '/api/public/stripe-webhook'
   fileRoutesById: FileRoutesById
 }
@@ -131,6 +143,7 @@ export interface RootRouteChildren {
   StartRoute: typeof StartRoute
   AdminTeamIdRoute: typeof AdminTeamIdRoute
   CheckoutTeamIdRoute: typeof CheckoutTeamIdRoute
+  PreviewTeamIdRoute: typeof PreviewTeamIdRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
 }
 
@@ -185,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutTeamIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/preview/$teamId': {
+      id: '/preview/$teamId'
+      path: '/preview/$teamId'
+      fullPath: '/preview/$teamId'
+      preLoaderRoute: typeof PreviewTeamIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/stripe-webhook': {
       id: '/api/public/stripe-webhook'
       path: '/api/public/stripe-webhook'
@@ -203,6 +223,7 @@ const rootRouteChildren: RootRouteChildren = {
   StartRoute: StartRoute,
   AdminTeamIdRoute: AdminTeamIdRoute,
   CheckoutTeamIdRoute: CheckoutTeamIdRoute,
+  PreviewTeamIdRoute: PreviewTeamIdRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
 }
 export const routeTree = rootRouteImport
