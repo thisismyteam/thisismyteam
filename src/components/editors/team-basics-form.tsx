@@ -95,7 +95,7 @@ export function TeamBasicsForm({
         />
       </Field>
        <div className="border-l-4 border-primary bg-surface px-4 py-4 sm:col-span-12 sm:px-6" aria-live="polite">
-         <p className="font-condensed text-sm font-bold uppercase text-muted-foreground" style={{ letterSpacing: "0.2em" }}>{organizationName || "Your school, club or league"}</p>
+         <p className="font-condensed text-sm font-bold uppercase text-muted-foreground">{organizationName || "Your school, club or league"}</p>
          <p className="display-xl mt-2 break-words text-3xl uppercase leading-none sm:text-5xl">{value.name || suggestedTeamName(organizationName, value.mascot) || "Your team name"}</p>
          <Btn type="button" variant="ghost" className="mt-2 h-auto px-0 py-1 text-primary" onClick={() => setEditingDisplayName((open) => !open)} aria-expanded={editingDisplayName}>
            {editingDisplayName ? "Done editing" : "Edit display name"}
