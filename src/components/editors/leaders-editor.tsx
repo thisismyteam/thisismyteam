@@ -3,8 +3,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Btn, Field, SelectInput, TextInput } from "@/components/ui-kit";
-import type { Game, Player, StatColumn } from "@/lib/team";
-import { searchLeaderPlayers, sortedLeaderPlayers } from "@/lib/leader-players";
+import type { Game, StatColumn } from "@/lib/team";
+import { searchLeaderPlayers } from "@/lib/leader-players";
+import { useSeasonRoster } from "@/lib/player-picker";
 
 type Leader = { id: string; player_id: string; leader_rank: number | null; stats: Record<string, unknown> };
 export function LeadersEditor({ teamId, seasonId, game, columns }: { teamId: string; seasonId: string; game: Game; columns: StatColumn[] }) {
@@ -13,19 +14,7 @@ export function LeadersEditor({ teamId, seasonId, game, columns }: { teamId: str
   const [playerSearch, setPlayerSearch] = useState("");
   const [stats, setStats] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
-  const playersQuery = useQuery({ queryKey: ["leader-players", seasonId], queryFn: async () => {
-    const players: Player[] = [];
-    // Fetch in pages rather than silently dropping players at the API row limit.
-    for (let offset = 0; ; offset += 500) {
-      const { data, error } = await supabase.from("players").select("*")
-        .eq("team_id", teamId).eq("season_id", seasonId).order("id")
-        .range(offset, offset + 499);
-      if (error) throw error;
-      players.push(...((data ?? []) as Player[]));
-      if (!data || data.length < 500) break;
-    }
-    return sortedLeaderPlayers(players);
-  }, refetchOnMount: "always" });
+  const playersQuery = useSeasonRoster(teamId, seasonId);
   const leadersQuery = useQuery({ queryKey: ["leaders", game.id], queryFn: async () => {
     const { data, error } = await supabase.from("player_game_stats").select("id, player_id, leader_rank, stats")
       .eq("game_id", game.id).not("leader_rank", "is", null).order("leader_rank");

@@ -10,6 +10,7 @@ import { tableToRoster, type RosterImportRow } from "@/lib/import/columns";
 import { ImportPanel } from "@/components/editors/import-panel";
 import { SaveStatus, useRowSaveStatus, useSaveStatus } from "@/components/save-status";
 import { PhotoDay } from "@/components/editors/photo-day";
+import { seasonRosterQueryKey } from "@/lib/player-picker";
 
 export function RosterEditor({
   teamId,
@@ -62,7 +63,8 @@ export function RosterEditor({
      onMutate: () => setAddState("saving"),
      onSuccess: () => {
        setAddState("saved");
-      qc.invalidateQueries({ queryKey: ["players", seasonId] });
+       qc.invalidateQueries({ queryKey: ["players", seasonId] });
+       qc.invalidateQueries({ queryKey: seasonRosterQueryKey(teamId, seasonId) });
       setDraft(emptyRosterRow(defaultLevel));
       toast.success("Roster updated");
     },
@@ -75,7 +77,7 @@ export function RosterEditor({
       if (error) throw error;
     },
      onMutate: ({ id }) => rowSave.set(id, "saving"),
-     onSuccess: (_data, { id }) => { rowSave.set(id, "saved"); qc.invalidateQueries({ queryKey: ["players", seasonId] }); },
+      onSuccess: (_data, { id }) => { rowSave.set(id, "saved"); qc.invalidateQueries({ queryKey: ["players", seasonId] }); qc.invalidateQueries({ queryKey: seasonRosterQueryKey(teamId, seasonId) }); },
      onError: (e: Error, { id }) => { rowSave.set(id, "error"); toast.error(e.message); },
   });
 
@@ -84,7 +86,7 @@ export function RosterEditor({
       const { error } = await supabase.from("players").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["players", seasonId] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["players", seasonId] }); qc.invalidateQueries({ queryKey: seasonRosterQueryKey(teamId, seasonId) }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -206,7 +208,7 @@ export function RosterEditor({
         <p className="eyebrow text-muted-foreground">
           Roster — {playersQuery.data?.length ?? 0} players
         </p>
-        <PhotoDay teamId={teamId} table="players" people={(playersQuery.data ?? []).map((p) => ({ id: p.id, name: `${p.first_name} ${p.last_name}`, jersey: p.jersey_number }))} onSaved={() => void qc.invalidateQueries({ queryKey: ["players", seasonId] })} />
+        <PhotoDay teamId={teamId} table="players" people={(playersQuery.data ?? []).map((p) => ({ id: p.id, name: `${p.first_name} ${p.last_name}`, jersey: p.jersey_number }))} onSaved={() => { void qc.invalidateQueries({ queryKey: ["players", seasonId] }); void qc.invalidateQueries({ queryKey: seasonRosterQueryKey(teamId, seasonId) }); }} />
         {(playersQuery.data ?? []).map((p) => (
           <div
             key={p.id}
