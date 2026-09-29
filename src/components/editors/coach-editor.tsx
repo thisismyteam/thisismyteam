@@ -100,7 +100,7 @@ export function CoachEditor({ teamId, seasonId }: { teamId: string; seasonId: st
             onChange={(e) => setTitle(e.target.value)}
           />
         </Field>
-        <div className="flex items-end sm:col-span-2">
+         <div className="flex items-end sm:col-span-3">
           <Btn type="submit" className="w-full" disabled={addCoach.isPending}>Save coach</Btn>
         </div>
       </form> : null}
