@@ -222,6 +222,8 @@ function Landing() {
       <Showcase />
 
 
+
+
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-10 sm:px-6 lg:px-8">
           <span className="display-xl text-xl">This Is My Team</span>
@@ -231,3 +233,66 @@ function Landing() {
     </div>
   );
 }
+
+/**
+ * "See it live" — a real published team's hero video playing on the homepage.
+ * Renders nothing when that team is unpublished or has no hero video.
+ */
+function Showcase() {
+  const fetchShowcase = useServerFn(getShowcaseTeam);
+  const { data: team } = useQuery({
+    queryKey: ["showcase", SHOWCASE_SLUG],
+    queryFn: () => fetchShowcase({ data: { slug: SHOWCASE_SLUG } }),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
+  if (!team) return null;
+
+  return (
+    <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+      <p className="eyebrow text-primary">See it live</p>
+      <h2 className="mt-3 text-3xl sm:text-5xl">This is what a team page looks like</h2>
+      <div className="panel mt-8 overflow-hidden p-0">
+        <div className="relative aspect-video w-full bg-surface-2">
+          <video
+            src={team.hero_video_url ?? undefined}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            aria-label={`${team.name} hero video`}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 flex flex-col gap-4 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-8">
+            <div className="flex items-center gap-3">
+              <span
+                className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full sm:h-16 sm:w-16"
+                style={{ backgroundColor: team.primary_color }}
+              >
+                {team.logo_url ? (
+                  <img src={team.logo_url} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="display-xl text-lg text-hero-light">{team.name.slice(0, 1)}</span>
+                )}
+              </span>
+              <p className="font-condensed text-lg font-bold uppercase leading-tight tracking-wide text-hero-light drop-shadow sm:text-2xl">
+                {team.name}, live on This Is My Team
+              </p>
+            </div>
+            <Link
+              to="/$slug"
+              params={{ slug: team.slug }}
+              className="inline-flex h-12 shrink-0 items-center justify-center rounded-md bg-primary px-6 text-sm font-black uppercase tracking-wide text-primary-foreground transition-transform hover:scale-[1.02]"
+            >
+              See their page
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
