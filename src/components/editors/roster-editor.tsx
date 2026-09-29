@@ -118,32 +118,28 @@ export function RosterEditor({
       </div>
 
       {tab === "paste" ? (
-        <div className="flex flex-col gap-3">
-          <Field label="One player per line" hint="Jersey, first name, last name, grade, level">
-            <textarea
-              value={pasteText}
-              onChange={(e) => setPasteText(e.target.value)}
-              rows={7}
-              placeholder={"12, Jordan, Miles, 11, Varsity\n7, Sam, Ortiz, 12, Varsity"}
-              className="w-full rounded-md border border-input bg-surface p-3 font-mono text-sm outline-none focus:border-primary"
-            />
-          </Field>
-          {parsedPreview.length > 0 ? (
-            <p className="text-xs text-muted-foreground">
-              {parsedPreview.length} player{parsedPreview.length === 1 ? "" : "s"} ready to add.
-              Positions can be set below once added.
-            </p>
-          ) : null}
-           <div className="flex items-center gap-3">
-            <Btn
-              type="button"
-              disabled={parsedPreview.length === 0 || addMany.isPending}
-              onClick={() => addMany.mutate(parsedPreview)}
-            >
-              Add {parsedPreview.length || ""} players
-            </Btn>
-             <SaveStatus state={addState} />
-          </div>
+        <div className="flex flex-col gap-2">
+          <ImportPanel<RosterImportRow>
+            teamId={teamId}
+            kind="roster"
+            noun={["player", "players"]}
+            columns={[
+              { key: "jersey_number", label: "#", width: "w-16" },
+              { key: "first_name", label: "First" },
+              { key: "last_name", label: "Last" },
+              { key: "grade", label: "Grade", width: "w-20" },
+              { key: "level", label: "Level" },
+              { key: "position", label: "Position", options: [{ value: "", label: "—" }, ...positions.map((p) => ({ value: p, label: p }))] },
+            ]}
+            pasteLabel="One player per line"
+            pasteHint="Jersey, first name, last name, grade, level"
+            pastePlaceholder={"12, Jordan, Miles, 11, Varsity\n7, Sam, Ortiz, 12, Varsity"}
+            parsePaste={(text) => tableToRoster(text.split(/\r?\n/).filter((l) => l.trim()).map((l) => [l]), positions, defaultLevel)}
+            parseTable={(rows) => tableToRoster(rows, positions, defaultLevel)}
+            onSave={async (rows) => { await addMany.mutateAsync(rows); }}
+            saving={addMany.isPending}
+          />
+          <SaveStatus state={addState} />
         </div>
       ) : (
         <form

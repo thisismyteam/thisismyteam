@@ -95,7 +95,6 @@ export function ImportPanel<T extends Row>({
                       ) : (
                         <input aria-label={c.label} type={c.type ?? "text"} value={r[c.key] ?? ""} onChange={(e) => update(i, c.key, e.target.value)} className="h-9 w-full rounded border border-input bg-surface px-2" />
                       )}
-                      {c.key === columns[0]!.key && r.warning ? null : null}
                     </td>
                   ))}
                   <td className="px-1 py-1">
