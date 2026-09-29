@@ -224,9 +224,9 @@ function AdminPage() {
                 View page <ExternalLink className="ml-2 h-4 w-4" />
               </Btn>
             </Link>
-            <Btn variant={team.published ? "outline" : "primary"} onClick={togglePublish}>
+            {team.published || team.payment_exempt || season?.paid_at ? <Btn variant={team.published ? "outline" : "primary"} onClick={togglePublish}>
               {team.published ? "Unpublish" : "Publish"}
-            </Btn>
+            </Btn> : isOwner ? <Link to="/start" search={{ teamId: team.id }}><Btn>Pay and publish</Btn></Link> : null}
           </div>
         </div>
         <div className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4 hide-scrollbar sm:px-6">
@@ -247,6 +247,7 @@ function AdminPage() {
       </div>
 
       <main className="mx-auto max-w-6xl px-4 py-8 pb-24 sm:px-6 sm:py-12">
+        {isOwner && season?.paid_at ? <p className="mb-8 border-l-4 border-primary bg-surface p-4 text-sm font-semibold">Paid for {season.label} season</p> : null}
         {tab === "Team info" ? (
           <form
             className="flex flex-col gap-6"
