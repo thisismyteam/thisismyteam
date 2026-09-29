@@ -18,3 +18,4 @@
 - [x] Multiple highlight uploads with per-file status and searchable player tags
 - [x] Hudl inline playback with fallback and team-branded highlight thumbnails
 - [x] Game Leaders: include every current-season roster player, sorted by jersey and searchable by name or number
+- [x] Clarify organization and mascot labels with a live team-name preview in setup and Team info

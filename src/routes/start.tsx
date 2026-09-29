@@ -297,11 +297,11 @@ function Wizard() {
           >
             <SectionTitle eyebrow="Step 1" title="Your organization" />
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Organization name">
+              <Field label="What's your school, club or league called?" hint="Use the full official name.">
                 <TextInput
                   required
                   value={orgName}
-                  placeholder="Northside High School"
+                  placeholder="e.g. Beverly Hills High School"
                   onChange={(e) => setOrgName(e.target.value)}
                 />
               </Field>

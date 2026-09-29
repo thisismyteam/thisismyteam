@@ -6,7 +6,7 @@ import { ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { SiteHeader } from "@/components/site-header";
-import { Btn, SectionTitle } from "@/components/ui-kit";
+import { Btn, Field, SectionTitle, TextInput } from "@/components/ui-kit";
 import { TeamBasicsForm, type TeamBasics } from "@/components/editors/team-basics-form";
 import { RosterEditor } from "@/components/editors/roster-editor";
 import { CoachEditor } from "@/components/editors/coach-editor";
@@ -264,6 +264,9 @@ function AdminPage() {
             }}
           >
             <SectionTitle title="Team info" />
+             <Field label="What's your school, club or league called?" hint="Use the full official name." className="max-w-lg">
+               <TextInput value={team.organizations?.name ?? ""} placeholder="e.g. Beverly Hills High School" readOnly />
+             </Field>
              <TeamBasicsForm value={basics} onChange={(next) => { setBasics(next); setSaveState("idle"); }} organizationName={team.organizations?.name ?? ""} uploadPrefix={team.id} />
              <div className="flex items-center gap-3">
               <Btn type="submit" disabled={saving}>
