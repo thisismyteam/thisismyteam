@@ -640,6 +640,7 @@ export type Database = {
           id: string
           is_current: boolean
           label: string
+          paid_at: string | null
           team_id: string
           updated_at: string
           year: number
@@ -649,6 +650,7 @@ export type Database = {
           id?: string
           is_current?: boolean
           label?: string
+          paid_at?: string | null
           team_id: string
           updated_at?: string
           year?: number
@@ -658,6 +660,7 @@ export type Database = {
           id?: string
           is_current?: boolean
           label?: string
+          paid_at?: string | null
           team_id?: string
           updated_at?: string
           year?: number
@@ -784,6 +787,60 @@ export type Database = {
           },
         ]
       }
+      team_payments: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          currency: string
+          id: string
+          paid_at: string | null
+          season_id: string
+          status: string
+          stripe_session_id: string
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          currency: string
+          id?: string
+          paid_at?: string | null
+          season_id: string
+          status?: string
+          stripe_session_id: string
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          paid_at?: string | null
+          season_id?: string
+          status?: string
+          stripe_session_id?: string
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_payments_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_payments_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teams: {
         Row: {
           created_at: string
@@ -795,6 +852,7 @@ export type Database = {
           mascot: string | null
           name: string
           organization_id: string
+          payment_exempt: boolean
           primary_color: string
           published: boolean
           published_at: string | null
@@ -814,6 +872,7 @@ export type Database = {
           mascot?: string | null
           name: string
           organization_id: string
+          payment_exempt?: boolean
           primary_color?: string
           published?: boolean
           published_at?: string | null
@@ -833,6 +892,7 @@ export type Database = {
           mascot?: string | null
           name?: string
           organization_id?: string
+          payment_exempt?: boolean
           primary_color?: string
           published?: boolean
           published_at?: string | null
@@ -865,6 +925,16 @@ export type Database = {
     }
     Functions: {
       claim_team_invites: { Args: never; Returns: number }
+      finalize_team_checkout: {
+        Args: {
+          _amount_cents: number
+          _currency: string
+          _season_id: string
+          _session_id: string
+          _team_id: string
+        }
+        Returns: boolean
+      }
       follow_team_by_email: {
         Args: { _email: string; _team_id: string }
         Returns: string
