@@ -2,16 +2,15 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Btn, Field, SelectInput, TextInput } from "@/components/ui-kit";
+import { Btn, Field, TextInput } from "@/components/ui-kit";
+import { PlayerCombobox } from "@/components/player-combobox";
 import type { Game, StatColumn } from "@/lib/team";
-import { searchLeaderPlayers } from "@/lib/leader-players";
 import { useSeasonRoster } from "@/lib/player-picker";
 
 type Leader = { id: string; player_id: string; leader_rank: number | null; stats: Record<string, unknown> };
 export function LeadersEditor({ teamId, seasonId, game, columns }: { teamId: string; seasonId: string; game: Game; columns: StatColumn[] }) {
   const qc = useQueryClient();
   const [playerId, setPlayerId] = useState("");
-  const [playerSearch, setPlayerSearch] = useState("");
   const [stats, setStats] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const playersQuery = useSeasonRoster(teamId, seasonId);
