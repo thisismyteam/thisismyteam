@@ -10,6 +10,28 @@ function publicClient() {
   );
 }
 
+/**
+ * A single published team used as the homepage showcase. Returns null when the
+ * team is missing, unpublished or has no hero video, so the section can hide
+ * itself instead of showing a placeholder.
+ */
+export const getShowcaseTeam = createServerFn({ method: "GET" })
+  .inputValidator((data: { slug: string }) => data)
+  .handler(async ({ data }) => {
+    const supabase = publicClient();
+
+    const { data: team } = await supabase
+      .from("teams")
+      .select("name, slug, logo_url, primary_color, secondary_color, hero_video_url")
+      .eq("slug", data.slug)
+      .eq("published", true)
+      .maybeSingle();
+
+    if (!team?.hero_video_url || !/^https:\/\//.test(team.hero_video_url)) return null;
+
+    return team;
+  });
+
 export const getPublicTeam = createServerFn({ method: "GET" })
   .inputValidator((data: { slug: string }) => data)
   .handler(async ({ data }) => {
