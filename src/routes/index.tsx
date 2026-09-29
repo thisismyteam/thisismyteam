@@ -21,8 +21,17 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "Any school, club or league can launch a pro-level home for their team in minutes.",
+          "Every team deserves to be seen.",
       },
+      { name: "twitter:title", content: "This Is My Team" },
+      { name: "twitter:description", content: "Every team deserves to be seen." },
+      { property: "og:url", content: "https://thisismyteam.app/" },
+      { property: "og:image", content: "https://thisismyteam.app/og-image.jpg" },
+      { name: "twitter:image", content: "https://thisismyteam.app/og-image.jpg" },
+    ],
+    links: [
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
+      { rel: "canonical", href: "https://thisismyteam.app/" },
     ],
   }),
   component: Landing,

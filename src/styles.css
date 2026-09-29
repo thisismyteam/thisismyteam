@@ -278,3 +278,11 @@
   .promo-stage .endcard .line { font-size: 10cqw; } .promo-stage .mark { font-size: 3.2cqw; } .promo-stage .sports svg { width: 8cqw; height: 8cqw; } .promo-stage .cta { font-size: 4cqw; padding: 2.4cqw 6cqw; }
 }
 @media (prefers-reduced-motion: reduce) { .promo-stage .grain { animation: none; } .promo-stage .slam.on, .promo-stage .wipe.on, .promo-stage .q span.on { animation: none; } }
+
+/* Hide platform badge */
+#lovable-badge { display: none !important; visibility: hidden !important; }
+
+/* iPhone safe areas (notch + home bar) */
+body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+header.sticky { padding-top: env(safe-area-inset-top); }
+.fixed.bottom-0 { padding-bottom: env(safe-area-inset-bottom); }

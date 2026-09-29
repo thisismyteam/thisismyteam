@@ -8,14 +8,15 @@ export const Route = createFileRoute("/$slug")({
     if (!data) throw notFound();
     return data;
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, params }) => {
     if (!loaderData) {
       return {
         meta: [{ title: "Team not found" }, { name: "robots", content: "noindex" }],
       };
     }
-    const team = loaderData.team as { name: string; tagline: string | null; mascot: string | null };
-    const title = `${team.name} — This Is My Team`;
+    const team = loaderData.team as { name: string; slug?: string; tagline: string | null; mascot: string | null; logo_url?: string | null };
+    const title = team.name;
+    const logo = team.logo_url && /^https:\/\//.test(team.logo_url) ? team.logo_url : null;
     const description =
       team.tagline ?? `Follow ${team.name}: roster, schedule, results and highlights.`;
     return {
@@ -25,7 +26,16 @@ export const Route = createFileRoute("/$slug")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:type", content: "website" },
-        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:card", content: logo ? "summary" : "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "apple-mobile-web-app-title", content: team.name },
+        { name: "application-name", content: team.name },
+        ...(logo ? [{ property: "og:image", content: logo }, { name: "twitter:image", content: logo }] : []),
+      ],
+      links: [
+        { rel: "apple-touch-icon", sizes: "180x180", href: logo ?? "/apple-touch-icon.png" },
+        { rel: "canonical", href: `https://thisismyteam.app/${params.slug}` },
       ],
     };
   },
