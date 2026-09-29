@@ -116,27 +116,57 @@ export type Database = {
           },
         ]
       }
+      follow_rate_limits: {
+        Row: {
+          attempts: number
+          created_at: string
+          email: string
+          id: string
+          updated_at: string
+          window_start: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          email: string
+          id?: string
+          updated_at?: string
+          window_start?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          email?: string
+          id?: string
+          updated_at?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       followers: {
         Row: {
           created_at: string
+          email: string | null
           id: string
           season_id: string | null
           team_id: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
+          email?: string | null
           id?: string
           season_id?: string | null
           team_id: string
-          user_id?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
+          email?: string | null
           id?: string
           season_id?: string | null
           team_id?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -278,6 +308,65 @@ export type Database = {
           },
         ]
       }
+      highlight_players: {
+        Row: {
+          created_at: string
+          highlight_id: string
+          id: string
+          player_id: string
+          season_id: string
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          highlight_id: string
+          id?: string
+          player_id: string
+          season_id: string
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          highlight_id?: string
+          id?: string
+          player_id?: string
+          season_id?: string
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "highlight_players_highlight_id_fkey"
+            columns: ["highlight_id"]
+            isOneToOne: false
+            referencedRelation: "highlights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "highlight_players_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "highlight_players_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "highlight_players_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       highlights: {
         Row: {
           created_at: string
@@ -383,6 +472,7 @@ export type Database = {
           created_at: string
           game_id: string
           id: string
+          leader_rank: number | null
           player_id: string
           season_id: string
           stats: Json
@@ -393,6 +483,7 @@ export type Database = {
           created_at?: string
           game_id: string
           id?: string
+          leader_rank?: number | null
           player_id: string
           season_id: string
           stats?: Json
@@ -403,6 +494,7 @@ export type Database = {
           created_at?: string
           game_id?: string
           id?: string
+          leader_rank?: number | null
           player_id?: string
           season_id?: string
           stats?: Json
@@ -625,6 +717,41 @@ export type Database = {
         }
         Relationships: []
       }
+      team_invites: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          invited_by: string
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          invited_by: string
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          invited_by?: string
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_invites_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_members: {
         Row: {
           created_at: string
@@ -737,7 +864,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      claim_team_invites: { Args: never; Returns: number }
+      follow_team_by_email: {
+        Args: { _email: string; _team_id: string }
+        Returns: string
+      }
+      team_follower_count: { Args: { _team_id: string }; Returns: number }
     }
     Enums: {
       team_role: "owner" | "contributor"
