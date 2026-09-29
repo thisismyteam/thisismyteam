@@ -15,12 +15,12 @@ export function matchPhoto(name: string, people: Person[]): string {
   const tokens = stem.split(" ");
   const number = tokens.find((token) => /^\d{1,3}$/.test(token));
   const byNumber = number ? people.filter((person) => person.jersey === number) : [];
-  if (byNumber.length === 1) return byNumber[0].id;
+  if (byNumber.length === 1) return byNumber[0]?.id ?? "";
   const byName = people.filter((person) => {
     const parts = normalize(person.name).split(" ");
     return parts.length >= 2 && parts.every((part) => tokens.includes(part));
   });
-  return byName.length === 1 ? byName[0].id : "";
+  return byName.length === 1 ? byName[0]?.id ?? "" : "";
 }
 
 export function PhotoDay({ people, teamId, table, onSaved }: { people: Person[]; teamId: string; table: "players" | "coaches"; onSaved: () => void }) {
@@ -34,6 +34,7 @@ export function PhotoDay({ people, teamId, table, onSaved }: { people: Person[];
     let saved = 0;
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
+      if (!item) continue;
       if (!item.personId || item.state === "saved") continue;
       update(i, { state: "saving" });
       try {
