@@ -3,7 +3,7 @@ import { ChevronDown, Search } from "lucide-react";
 import { TextInput } from "@/components/ui-kit";
 import { searchLeaderPlayers } from "@/lib/leader-players";
 
-export type PickerPlayer = { id: string; first_name: string; last_name: string; jersey_number: string | number | null };
+export type PickerPlayer = { id: string; first_name: string; last_name: string; jersey_number: string | null };
 
 export function playerLabel(p: PickerPlayer) {
   return `#${p.jersey_number ?? "—"} ${p.first_name} ${p.last_name}`;
