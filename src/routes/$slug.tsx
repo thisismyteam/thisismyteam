@@ -6,6 +6,9 @@ export const Route = createFileRoute("/$slug")({
   loader: async ({ params }) => {
     const data = await getPublicTeam({ data: { slug: params.slug } });
     if (!data) throw notFound();
+    if (params.slug !== data.team.slug) {
+      throw redirect({ to: "/$slug", params: { slug: data.team.slug }, replace: true });
+    }
     return data;
   },
   head: ({ loaderData, params }) => {
