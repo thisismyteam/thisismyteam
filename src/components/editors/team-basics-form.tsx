@@ -169,6 +169,7 @@ export function TeamBasicsForm({
               disabled={uploading}
               onFiles={(files) => { const f = files[0]; if (f) handleLogo(f); }}
             />
+          </div>
         </div>
       </div>
 
