@@ -17,4 +17,4 @@
 - [x] Consistent coach, game, and link save/add controls
 - [x] Multiple highlight uploads with per-file status and searchable player tags
 - [x] Hudl inline playback with fallback and team-branded highlight thumbnails
-- [ ] Game Leaders: include every current-season roster player, sorted by jersey and searchable by name or number
+- [x] Game Leaders: include every current-season roster player, sorted by jersey and searchable by name or number
