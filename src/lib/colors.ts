@@ -19,7 +19,7 @@ export function hexToRgb(hex: string): [number, number, number] {
 }
 
 function luminance(hex: string) {
-  const [r, g, b] = hexToRgb(hex).map((v) => {
+  const [r = 0, g = 0, b = 0] = hexToRgb(hex).map((v) => {
     const s = v / 255;
     return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
   });
@@ -60,11 +60,11 @@ export async function extractPalette(file: File | Blob): Promise<[string, string
 
     const buckets = new Map<string, { count: number; r: number; g: number; b: number }>();
     for (let i = 0; i < data.length; i += 4) {
-      const a = data[i + 3];
+      const a = data[i + 3] ?? 0;
       if (a < 128) continue;
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
+      const r = data[i] ?? 0;
+      const g = data[i + 1] ?? 0;
+      const b = data[i + 2] ?? 0;
       const key = `${r >> 4}-${g >> 4}-${b >> 4}`;
       const entry = buckets.get(key) ?? { count: 0, r: 0, g: 0, b: 0 };
       entry.count += 1;
@@ -90,13 +90,13 @@ export async function extractPalette(file: File | Blob): Promise<[string, string
 
     if (scored.length === 0) return ["#0B0B0F", "#E9E9EF"];
 
-    const primary = scored[0];
+    const primary = scored[0]!;
     const second =
       scored.find((c) => {
         const dist =
           Math.abs(c.r - primary.r) + Math.abs(c.g - primary.g) + Math.abs(c.b - primary.b);
         return dist > 140;
-      }) ?? scored[Math.min(1, scored.length - 1)];
+      }) ?? scored[Math.min(1, scored.length - 1)]!;
 
     return [primary.hex, second.hex === primary.hex ? "#E9E9EF" : second.hex];
   } catch {

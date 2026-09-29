@@ -160,7 +160,10 @@ function AdminPage() {
       .from("teams")
       .update({ published: next, published_at: next ? new Date().toISOString() : null })
       .eq("id", teamId);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     qc.invalidateQueries({ queryKey: ["admin-team", teamId] });
     toast.success(next ? "Your team is live" : "Your team is now a draft");
   }
