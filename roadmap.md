@@ -1,4 +1,4 @@
 - [x] Data structures, permissions, video bucket cap, and security linter
-- [ ] Team management: video, highlights, leaders, links, followers, contributors
-- [ ] Public team page: media, cards, leaders, follow, links, schedule labels
-- [ ] Verify flows and preserve landing video
+- [x] Team management: video, highlights, leaders, links, followers, contributors
+- [x] Public team page: media, cards, leaders, follow, links, schedule labels
+- [x] Verify flows and preserve landing video
