@@ -68,7 +68,7 @@ export function homeAwayWord(text: string): HomeAway | null {
 type Parsed = {
   date?: string;
   time?: string;
-  ha?: HomeAway;
+  ha?: HomeAway | undefined;
   us?: number;
   them?: number;
   texts: string[];
