@@ -65,7 +65,7 @@ export function PlayerCombobox({ players, value, onChange, loading, error, place
                   type="button"
                   role="option"
                   aria-selected={p.id === value}
-                  onClick={() => { onChange(p.id); setOpen(false); setSearch(""); }}
+                  onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); onChange(p.id); setOpen(false); setSearch(""); }}
                   className={`flex min-h-11 w-full items-center px-2 py-2 text-left text-sm hover:bg-secondary ${p.id === value ? "bg-secondary font-semibold" : ""}`}
                 >
                   {playerLabel(p)}
