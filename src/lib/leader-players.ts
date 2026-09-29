@@ -1,6 +1,6 @@
-import type { Player } from "@/lib/team";
+export type LeaderPlayer = { id: string; first_name: string; last_name: string; jersey_number: string | null };
 
-export function sortedLeaderPlayers(players: Player[]): Player[] {
+export function sortedLeaderPlayers<T extends LeaderPlayer>(players: T[]): T[] {
   return [...players].sort((a, b) => {
     const aNumber = Number(a.jersey_number);
     const bNumber = Number(b.jersey_number);
@@ -13,7 +13,7 @@ export function sortedLeaderPlayers(players: Player[]): Player[] {
   });
 }
 
-export function searchLeaderPlayers(players: Player[], search: string): Player[] {
+export function searchLeaderPlayers<T extends LeaderPlayer>(players: T[], search: string): T[] {
   const words = search.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
   if (!words.length) return players;
   return players.filter((player) => {
