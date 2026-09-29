@@ -10,6 +10,7 @@ import {
   gameResult,
   nextGame,
   type Coach,
+  type Team,
   type Game,
   type Player,
 } from "@/lib/team";
@@ -62,14 +63,17 @@ export const Route = createFileRoute("/$slug")({
 
 function TeamPage() {
   const data = Route.useLoaderData();
-  const team = data.team as Record<string, any>;
+  const team = data.team as unknown as Team & {
+    sports: { name: string } | null;
+    organizations: { name: string } | null;
+  };
   const players = (data.players ?? []) as unknown as Player[];
   const coaches = (data.coaches ?? []) as unknown as Coach[];
   const games = (data.games ?? []) as unknown as Game[];
-  const sport = team.sports as { name: string } | null;
+  const sport = team.sports;
 
-  const primary = team.primary_color as string;
-  const secondary = team.secondary_color as string;
+  const primary = team.primary_color;
+  const secondary = team.secondary_color;
   const record = computeRecord(games);
   const streak = computeStreak(games);
   const upcoming = nextGame(games);
@@ -135,7 +139,7 @@ function TeamPage() {
                   className="display-xl text-8xl"
                   style={{ color: onColor(primary) }}
                 >
-                  {String(team.name).slice(0, 1)}
+                  {team.name.slice(0, 1)}
                 </span>
               )}
             </div>
@@ -144,7 +148,7 @@ function TeamPage() {
 
           <div className="absolute inset-x-0 bottom-0 mx-auto max-w-6xl px-4 pb-8 sm:px-6 sm:pb-12">
             <p className="eyebrow" style={{ color: secondary }}>
-              {(team.organizations as any)?.name} · {sport?.name} · {team.level}
+              {team.organizations?.name} · {sport?.name} · {team.level}
             </p>
             <h1 className="display-xl mt-2 text-5xl leading-[0.9] sm:text-7xl lg:text-8xl">
               {team.name}
@@ -165,11 +169,11 @@ function TeamPage() {
       >
         <div className="mx-auto grid max-w-6xl grid-cols-2 gap-px px-4 py-6 sm:grid-cols-4 sm:px-6">
           <Stat label="Record" value={`${record.wins}-${record.losses}`} />
-          <Stat label="Streak" value={streak || "—"} />
+          <Stat label="Streak" value={streak ? `${streak.count}${streak.type}` : "—"} />
           <Stat
             label="Next game"
-            value={upcoming ? (upcoming.opponent_name ?? "TBD") : "—"}
-            sub={upcoming ? formatGameDate(upcoming) : "Season complete"}
+            value={upcoming ? upcoming.opponent : "—"}
+            sub={upcoming ? formatGameDate(upcoming.game_date) : "Season complete"}
           />
           <Stat label="Roster" value={String(players.length)} sub="players" />
         </div>
@@ -187,13 +191,13 @@ function TeamPage() {
                   className="panel flex flex-wrap items-center gap-3 px-4 py-3 sm:px-5"
                 >
                   <span className="w-28 shrink-0 text-xs text-muted-foreground">
-                    {formatGameDate(g)}
+                    {formatGameDate(g.game_date)}
                   </span>
                   <span className="min-w-0 flex-1 truncate font-semibold">
                     <span className="mr-1.5 text-xs uppercase text-muted-foreground">
                       {g.home_away === "home" ? "vs" : g.home_away === "away" ? "at" : "vs"}
                     </span>
-                    {g.opponent_name}
+                    {g.opponent}
                   </span>
                   {g.location ? (
                     <span className="hidden text-xs text-muted-foreground sm:block">
