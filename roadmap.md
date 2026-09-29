@@ -6,7 +6,7 @@
 - [x] Owner-only checkout, signed webhook, review cancellation, verified success screen and QR
 - [x] Verify $299 checkout, signed test payment publication, mobile layout, and legacy published teams
 - [ ] Publish the updated app so Stripe can reach the new webhook on the public domain (requires your approval)
-- [ ] Signed-in navigation everywhere and manager-only public team action
-- [ ] Organization-based mascot/display naming for new and existing teams
-- [ ] Visible save states for team, roster, coaches, schedule and links
-- [ ] Hudl short/full link resolution, embed and watch fallback
+- [x] Signed-in navigation everywhere and manager-only public team action
+- [x] Organization-based mascot/display naming for new and existing teams
+- [x] Visible save states for team, roster, coaches, schedule and links
+- [x] Hudl short/full link resolution, embed and watch fallback
