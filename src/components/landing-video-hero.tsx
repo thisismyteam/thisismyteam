@@ -21,11 +21,11 @@ export function LandingVideoHero() {
       const reduce = motionQuery.matches;
       const t = reduce ? 15.5 : video?.currentTime || 0;
       for (const beat of beats) {
-        const on = t >= Number(beat.dataset.in) && t < Number(beat.dataset.out);
+        const on = t >= Number(beat.dataset['in']) && t < Number(beat.dataset['out']);
         if (on !== beat.classList.contains("on")) beat.classList.toggle("on", on);
       }
       for (const word of words) {
-        const on = !reduce && t >= Number(word.dataset.at) && t < 2.0;
+        const on = !reduce && t >= Number(word.dataset['at']) && t < 2.0;
         if (on !== word.classList.contains("on")) word.classList.toggle("on", on);
       }
       frame = requestAnimationFrame(tick);
