@@ -32,10 +32,10 @@ export function ClipViewer({ clips, index, onIndex, onClose }: { clips: Clip[]; 
         role="dialog" aria-modal="true" aria-label={clip.title}
         className="flex h-full w-full max-w-5xl flex-col justify-center bg-background sm:h-auto sm:bg-surface"
         onClick={(e) => e.stopPropagation()}
-        onTouchStart={(e) => { const t = e.touches[0]; touch.current = { x: t.clientX, y: t.clientY }; }}
+        onTouchStart={(e) => { const t = e.touches[0]; if (!t) return; touch.current = { x: t.clientX, y: t.clientY }; }}
         onTouchEnd={(e) => {
           const s = touch.current; touch.current = null; if (!s) return;
-          const t = e.changedTouches[0]; const dx = t.clientX - s.x; const dy = t.clientY - s.y;
+          const t = e.changedTouches[0]; if (!t) return; const dx = t.clientX - s.x; const dy = t.clientY - s.y;
           if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) go(dx < 0 ? 1 : -1);
         }}
       >

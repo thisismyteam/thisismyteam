@@ -298,7 +298,7 @@ export function TeamPageView({ data, bottomBar }: { data: TeamPageData; bottomBa
       ) : null}
       {coach ? <div role="presentation" className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 sm:items-center sm:p-6" onClick={() => setCoach(null)}><div role="dialog" aria-modal="true" aria-label={coach.name} className="max-h-[90vh] w-full max-w-md overflow-y-auto border border-border bg-surface" onClick={(e) => e.stopPropagation()}>{coach.photo_url ? <img src={coach.photo_url} alt={coach.name} className="aspect-[4/3] w-full object-cover" /> : <div className="flex aspect-[4/3] items-center justify-center bg-team font-condensed text-7xl text-team-foreground">{coach.name.split(/\s+/).map((part) => part[0]).slice(0, 2).join("")}</div>}<div className="p-6"><p className="eyebrow text-team-secondary">{coach.title ?? "Coach"}</p><h3 className="display-xl mt-1 text-3xl">{coach.name}</h3>{coach.bio ? <p className="mt-4 text-sm">{coach.bio}</p> : null}<Btn type="button" variant="outline" className="mt-6 w-full" onClick={() => setCoach(null)}>Close</Btn></div></div></div> : null}
       {bottomBar}
-      {clip ? <ClipViewer clips={playable} index={Math.max(0, playable.findIndex((h) => h.id === clip.id))} onIndex={(n) => setClip(playable[n])} onClose={() => setClip(null)} /> : null}
+      {clip ? <ClipViewer clips={playable} index={Math.max(0, playable.findIndex((h) => h.id === clip.id))} onIndex={(n) => setClip(playable[n] ?? null)} onClose={() => setClip(null)} /> : null}
     </div>
   );
 }
