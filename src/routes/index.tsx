@@ -8,7 +8,7 @@ import { getShowcaseTeam } from "@/lib/public-team.functions";
 import type { Sport } from "@/lib/team";
 
 /** The published team shown in the homepage "See it live" showcase. */
-const SHOWCASE_SLUG = "beverlyhillsfootball";
+const SHOWCASE_SLUG = "south-bronx-high-bronx-boys";
 
 
 
