@@ -26,6 +26,7 @@ export function ScheduleEditor({ teamId, seasonId, statColumns = [], year = 2026
   const qc = useQueryClient();
   const [tab, setTab] = useState<"paste" | "one">("paste");
   const [draft, setDraft] = useState({ ...blank });
+  const [showOne, setShowOne] = useState(true);
   const rowSave = useRowSaveStatus();
   const [addState, setAddState] = useSaveStatus();
 
@@ -62,6 +63,7 @@ export function ScheduleEditor({ teamId, seasonId, statColumns = [], year = 2026
      onMutate: () => setAddState("saving"),
      onSuccess: () => {
        setAddState("saved");
+        setShowOne(false);
       setDraft({ ...blank });
       qc.invalidateQueries({ queryKey: ["games", seasonId] });
     },
@@ -165,7 +167,7 @@ export function ScheduleEditor({ teamId, seasonId, statColumns = [], year = 2026
           saving={importMany.isPending}
         />
       ) : (
-      <form
+      showOne ? <form
         className="panel grid gap-3 p-4 sm:grid-cols-12"
         onSubmit={(e) => {
           e.preventDefault();
@@ -225,10 +227,10 @@ export function ScheduleEditor({ teamId, seasonId, statColumns = [], year = 2026
         </Field>
         <div className="flex items-end sm:col-span-2">
           <Btn type="submit" className="w-full" disabled={addGame.isPending}>
-            <Plus className="mr-1 h-4 w-4" /> Add
+            Save game
           </Btn>
         </div>
-      </form>
+      </form> : <Btn type="button" variant="outline" onClick={() => { setShowOne(true); setAddState("idle"); }}><Plus className="mr-1 h-4 w-4" /> Add another game</Btn>
       )}
        <div className="-mt-3"><SaveStatus state={addState} /></div>
 
