@@ -32,6 +32,7 @@ export const Route = createFileRoute("/")({
     links: [
       { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
       { rel: "canonical", href: "https://thisismyteam.app/" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
     ],
   }),
   component: Landing,

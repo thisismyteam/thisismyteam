@@ -14,8 +14,9 @@ export const Route = createFileRoute("/$slug")({
         meta: [{ title: "Team not found" }, { name: "robots", content: "noindex" }],
       };
     }
-    const team = loaderData.team as { name: string; slug?: string; tagline: string | null; mascot: string | null; logo_url?: string | null };
+    const team = loaderData.team as { name: string; slug?: string; tagline: string | null; mascot: string | null; logo_url?: string | null; app_icon_url?: string | null };
     const title = team.name;
+    const icon = [team.app_icon_url, team.logo_url].find((u) => u && /^https:\/\//.test(u)) ?? null;
     const logo = team.logo_url && /^https:\/\//.test(team.logo_url) ? team.logo_url : null;
     const description =
       team.tagline ?? `Follow ${team.name}: roster, schedule, results and highlights.`;
@@ -34,7 +35,9 @@ export const Route = createFileRoute("/$slug")({
         ...(logo ? [{ property: "og:image", content: logo }, { name: "twitter:image", content: logo }] : []),
       ],
       links: [
-        { rel: "apple-touch-icon", sizes: "180x180", href: logo ?? "/apple-touch-icon.png" },
+        { rel: "apple-touch-icon", sizes: "180x180", href: icon ?? "/apple-touch-icon.png" },
+        ...(icon ? [{ rel: "icon", href: icon }] : []),
+        { rel: "manifest", href: `/api/public/manifest/${params.slug}` },
         { rel: "canonical", href: `https://thisismyteam.app/${params.slug}` },
       ],
     };

@@ -843,6 +843,7 @@ export type Database = {
       }
       teams: {
         Row: {
+          app_icon_url: string | null
           created_at: string
           created_by: string
           hero_video_url: string | null
@@ -863,6 +864,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          app_icon_url?: string | null
           created_at?: string
           created_by?: string
           hero_video_url?: string | null
@@ -883,6 +885,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          app_icon_url?: string | null
           created_at?: string
           created_by?: string
           hero_video_url?: string | null
