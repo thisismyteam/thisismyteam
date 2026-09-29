@@ -1,4 +1,4 @@
-# Team Spotlight
+# This Is My Team
 
 Build "This Is My Team" (thisismyteam.app): a platform where any school, club or league launches a pro-level home for their team in minutes. Fans follow their teams, watch highlights, get to know the players and coaches, and get involved.
 
